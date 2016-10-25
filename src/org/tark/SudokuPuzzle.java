@@ -1,5 +1,9 @@
 package org.tark;
 
+import org.sat4j.core.VecInt;
+import org.sat4j.minisat.SolverFactory;
+import org.sat4j.specs.*;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 
@@ -21,12 +25,11 @@ public class SudokuPuzzle {
                 this.currentBoard[x][y] = initialBoard[x][y];
             }
         }
-
     }
 
-    public int getBoardSize() { return boardSize; };
+    public int getBoardSize() { return boardSize; }
 
-    public String getDIMACSString(){
+    public String calcDIMACSString(){
         int numClauses = 0;
         String clauses = new String();
         String subs;
@@ -137,7 +140,7 @@ public class SudokuPuzzle {
         return header + clauses;
     }
 
-    public ArrayList<ArrayList<Integer>> getDIMACSInteger(){
+    private ArrayList<ArrayList<Integer>> calcDIMACSInteger(){
         ArrayList<ArrayList<Integer>> allClauses = new ArrayList<>();
         ArrayList<Integer> clause;
         ArrayList<Integer> subclause;
@@ -236,21 +239,70 @@ public class SudokuPuzzle {
         return allClauses;
     }
 
-    public void setCellsFromDIMACS(int[] vars){
+    private void setCellsFromDIMACS(int[] vars, boolean verbose){
         for (int var:vars) {
             if (var > 0){
                 int x    = (var / 100) % 10;
                 int y    = (var / 10)  % 10;
                 int num  =  var        % 10;
-                if (currentBoard[x][y] == 0){
+                if ((currentBoard[x][y] == 0) || currentBoard[x][y] != initialBoard[x][y]){
                     currentBoard[x][y] = num;
-                    System.out.printf("Assigning value %d to (%d, %d).\n", num, x, y);
+                    if (verbose)
+                        System.out.printf("Assigning value %d to (%d, %d).\n", num, x, y);
                 }
                 else{
-                    System.out.printf("Attempted to overwrite preset value %d with SAT output %d at (%d, %d).\n", currentBoard[x][y], num, x, y);
+                    if (verbose)
+                        System.out.printf("Not assigning value %d to (%d, %d), would overwrite initial value %d.\n", num, x, y, initialBoard[x][y]);
                 }
             }
         }
+    }
+
+    public boolean solve(boolean verbose){
+        long startTime = System.currentTimeMillis();
+        long parseTime = 0;
+        long SATTime = 0;
+        try {
+            ArrayList<ArrayList<Integer>> allClauses = this.calcDIMACSInteger();
+            ISolver solver = SolverFactory.newDefault();
+            solver.newVar(889);
+            solver.setExpectedNumberOfClauses(allClauses.size());
+            for (ArrayList<Integer> clause : allClauses) {
+                int[] clauseArray = clause.stream().mapToInt(i -> i).toArray();
+                solver.addClause(new VecInt(clauseArray));
+            }
+            parseTime = System.currentTimeMillis() - startTime;
+            startTime = System.currentTimeMillis();
+
+            IProblem problem = solver;
+            if (problem.isSatisfiable()) {
+                SATTime = System.currentTimeMillis() - startTime;
+                int[] solution = problem.model();
+                this.setCellsFromDIMACS(solution, verbose);
+                if (verbose){
+                    System.out.println("Satisfiable!");
+                    System.out.printf("Statistics:!\n");
+                    System.out.printf("Parse time: %dms\n", parseTime);
+                    System.out.printf("SAT time: %dms\n", SATTime);
+                    System.out.printf("Number of variables: %d\n", solver.nVars());
+                    System.out.printf("Number of constraints: %d\n", solver.nConstraints());
+                    System.out.println(solver.getStat());
+                }
+            }
+            else{
+                if (verbose) { System.out.println("Unsatisfiable!"); }
+                return false;
+            }
+        }
+        catch (ContradictionException e){
+            System.out.println("CNF Contradiction! " + e);
+            return false;
+            }
+        catch (TimeoutException e){
+            System.out.println("The problem has timed out. " + e);
+            return false;
+        }
+        return true;
     }
 
     public String getBoardString(int boardType){
