@@ -9,6 +9,7 @@ import java.util.Arrays;
 
 /**
  * Created by Tarkol on 25/10/2016.
+ * This class is used to represent a complete Sudoku puzzle and includes functions to solve it.
  */
 public class SudokuPuzzle {
     private final int boardSize = 9;
@@ -28,13 +29,13 @@ public class SudokuPuzzle {
 
     public String calcDIMACSString(){
         int numClauses = 0;
-        String clauses = new String();
+        String clauses = "";
         String subs;
 
         //Clauses for individual cells
         for (int y = 0; y < boardSize; y++){
             for (int x = 0; x < boardSize; x++){
-                subs = new String();
+                subs = "";
                 for (int i = 1; i <= boardSize; i++){
                     clauses += String.format("%d%d%d ", x, y, i);
                     for (int i2 = 1; i2 <= boardSize; i2++){
@@ -54,7 +55,7 @@ public class SudokuPuzzle {
         //Clauses for rows
         for (int x = 0; x < boardSize; x++){
             for (int i = 1; i <= boardSize; i++){
-                subs = new String();
+                subs = "";
                 for (int y = 0; y < boardSize; y ++){
                     clauses += String.format("%d%d%d ", x, y, i);
                     numClauses++;
@@ -75,7 +76,7 @@ public class SudokuPuzzle {
         //Clauses for columns
         for (int y = 0; y < boardSize; y++){
             for (int i = 1; i <= boardSize; i++){
-                subs = new String();
+                subs = "";
                 for (int x = 0; x < boardSize; x ++){
                     clauses += String.format("%d%d%d ", x, y, i);
                     for (int x2 = 0; x2 < boardSize; x2++){
@@ -97,7 +98,7 @@ public class SudokuPuzzle {
 
             for (int blockX = 0; blockX < blockSize; blockX++) {
                 for (int i = 1; i <= boardSize; i++) {
-                    subs = new String();
+                    subs = "";
                     for (int x = 0; x < blockSize; x ++){
                         for (int y = 0; y < blockSize; y++) {
                             clauses += String.format("%d%d%d ", x + (blockX * blockSize),

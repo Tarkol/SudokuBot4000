@@ -1,7 +1,8 @@
 package org.tark;
 
 /**
- * Created by conno on 27/10/2016.
+ * Created by Tarkol on 27/10/2016.
+ * A single cell on a Sudoku board. Might be unnecessary.
  */
 public class SudokuCell {
 
@@ -30,6 +31,6 @@ public class SudokuCell {
 
     @Override
     public String toString(){
-        return String.format("Digit: %d\n Initial: %d", this.digit, this.initial);
+        return String.format("Digit: %d\n Initial: %b", this.digit, this.initial);
     }
 }
