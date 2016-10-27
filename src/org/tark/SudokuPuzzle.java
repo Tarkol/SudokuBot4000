@@ -13,16 +13,13 @@ import java.util.Arrays;
 public class SudokuPuzzle {
     private final int boardSize = 9;
     private final int blockSize = 3;
-    private int[][] initialBoard;
-    private int[][] currentBoard;
+    private SudokuCell[][] board;
 
-    public SudokuPuzzle(int[][] initialBoard) {
-        this.initialBoard = new int[boardSize][boardSize];
-        this.currentBoard = new int[boardSize][boardSize];
+    public SudokuPuzzle(int[][] board) {
+        this.board = new SudokuCell[boardSize][boardSize];
         for (int y = 0; y < boardSize; y++){
             for (int x = 0; x < boardSize; x++){
-                this.initialBoard[x][y] = initialBoard[x][y];
-                this.currentBoard[x][y] = initialBoard[x][y];
+                this.board[x][y] = new SudokuCell(board[x][y], board[x][y] != 0);
             }
         }
     }
@@ -129,8 +126,8 @@ public class SudokuPuzzle {
         //Clauses for fixed cells
         for (int y = 0; y < boardSize; y++) {
             for (int x = 0; x < boardSize; x++) {
-                if (currentBoard[x][y] > 0){
-                    clauses += String.format("%d%d%d 0\n", x, y, currentBoard[x][y]);
+                if (board[x][y].getDigit() > 0){
+                    clauses += String.format("%d%d%d 0\n", x, y, board[x][y].getDigit());
                     numClauses++;
                 }
             }
@@ -228,9 +225,9 @@ public class SudokuPuzzle {
         //Clauses for fixed cells
         for (int y = 0; y < boardSize; y++) {
             for (int x = 0; x < boardSize; x++) {
-                if (currentBoard[x][y] > 0){
+                if (board[x][y].getDigit() > 0){
                     subclause = new ArrayList<>();
-                    subclause.add((100 * x)  + (10 * y)  + currentBoard[x][y]);
+                    subclause.add((100 * x)  + (10 * y)  + board[x][y].getDigit());
                     allClauses.add(subclause);
                 }
             }
@@ -239,20 +236,18 @@ public class SudokuPuzzle {
         return allClauses;
     }
 
-    private void setCellsFromDIMACS(int[] vars, boolean verbose){
-        for (int var:vars) {
-            if (var > 0){
-                int x    = (var / 100) % 10;
-                int y    = (var / 10)  % 10;
-                int num  =  var        % 10;
-                if ((currentBoard[x][y] == 0) || currentBoard[x][y] != initialBoard[x][y]){
-                    currentBoard[x][y] = num;
+    private void setCellsFromDIMACS(int[] vars, boolean verbose) {
+        for (int var : vars) {
+            if (var > 0) {
+                int x = (var / 100) % 10;
+                int y = (var / 10) % 10;
+                int num = var % 10;
+                if (board[x][y].setDigit(num)) {
                     if (verbose)
                         System.out.printf("Assigning value %d to (%d, %d).\n", num, x, y);
-                }
-                else{
+                } else {
                     if (verbose)
-                        System.out.printf("Not assigning value %d to (%d, %d), would overwrite initial value %d.\n", num, x, y, initialBoard[x][y]);
+                        System.out.printf("Not assigning value %d to (%d, %d), would overwrite initial value %d.\n", num, x, y, board[x][y].getDigit());
                 }
             }
         }
@@ -317,7 +312,7 @@ public class SudokuPuzzle {
         for (int y = 0; y < boardSize; y++) {
             s += "|";
             for (int x = 0; x < boardSize; x++) {
-                int XY = (boardType == 0) ? initialBoard[x][y] : currentBoard[x][y];
+                int XY = (boardType == 0 && board[x][y].isInitial()) ? 0 : board[x][y].getDigit();
                 s += (XY == 0 ? " " : XY) + "|";
             }
             s += "\n";
