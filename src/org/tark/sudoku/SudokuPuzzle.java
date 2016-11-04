@@ -2,11 +2,14 @@ package org.tark.sudoku;
 
 import org.sat4j.core.VecInt;
 import org.sat4j.minisat.SolverFactory;
+import org.sat4j.minisat.orders.RandomLiteralSelectionStrategy;
+import org.sat4j.minisat.orders.RandomWalkDecorator;
 import org.sat4j.specs.*;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Random;
 
 /**
  * Created by Tarkol on 25/10/2016.
@@ -67,6 +70,7 @@ public class SudokuPuzzle {
         return header + clauseString;
     }
 
+    //TODO: Bad, doesn't work for 2 digit co-ordinates.
     private ArrayList<ArrayList<Integer>> calcClauses(){
         ArrayList<ArrayList<Integer>> allClauses = new ArrayList<>();
         ArrayList<Integer> clause;
@@ -166,6 +170,7 @@ public class SudokuPuzzle {
         return allClauses;
     }
 
+    //TODO: Bad, doesn't work for 2 digit co-ordinates.
     private void setCellsFromDIMACS(int[] vars, boolean verbose) {
         for (int var : vars) {
             if (var > 0) {
@@ -201,6 +206,7 @@ public class SudokuPuzzle {
      * @return An array with all the DIMACs variables to form the solution.
      * [NOTE] deal with exceptions in a better way than nulls
      */
+    //TODO: Maybe actually do exception handling. Maybe doesn't have to be its own method?
     private int[] getSolution(ArrayList<ArrayList<Integer>> clauses, boolean verbose){
         long startTime = System.currentTimeMillis();
         long parseTime;
@@ -250,6 +256,7 @@ public class SudokuPuzzle {
      * Checks if the puzzle has a single unique solution. That is, each cell has only one correct value.
      * @return True if there is only one unique solution.
      */
+    //TODO: Make this not awful. Use same solver again instead of reinstantiating everything.
     private boolean hasUniqueSolution(){
         //First, get the solution for the current puzzle state.
         ArrayList<ArrayList<Integer>> clauses = calcClauses();
@@ -269,18 +276,44 @@ public class SudokuPuzzle {
         else { return false; }
     }
 
+    private boolean hasSolution(){
+        int[] solution = getSolution(calcClauses(), false);
+        if (solution == null || solution.length == 0) { return false; }
+        return true;
+    }
     /**
      * Generates a sudoku puzzle with a unique solution.
      * @param blockSize The size of the blocks that make up the overall puzzle.
      * @return A SudokuPuzzle object that represents the puzzle.
      */
+    //TODO: actually make this work.
     public static SudokuPuzzle generatePuzzle(int blockSize){
         //First create and solve an empty puzzle. This will be the solution to the puzzle we are generating.
+        /*
+        1) start with an empty board
+        2) add a random number at one of the free cells (the cell is chosen randomly,
+           and the number is chosen randomly from the list of numbers valid for this cell according to the SuDoKu rules)
+        3) Use the backtracking solver to check if the current board has at least one valid solution.
+           If not, undo step 2 and repeat with another number and cell.
+           Note that this step might produce full valid boards on its own, but those are in no way random.
+        4) Repeat until the board is completely filled with numbers
+         */
         SudokuPuzzle puzzle = new SudokuPuzzle(blockSize);
-        puzzle.solve(false);
+        ArrayList<SudokuCell>cells = puzzle.getAllCells();
+        Collections.shuffle(cells);
+        Random rng = new Random();
+
+
+        int cellsDone = 0;
+        while (cellsDone < puzzle.boardSize * puzzle.boardSize){
+            cells.get(cellsDone).setDigit(rng.nextInt(puzzle.boardSize) + 1, false);
+            if (puzzle.hasSolution()) { cellsDone++; }
+            else {
+                cells.get(cellsDone).setDigit(0, false);
+            }
+        }
 
         //Get all cells in the puzzle, put them in a random order.
-        ArrayList<SudokuCell> cells = puzzle.getAllCells();
         Collections.shuffle(cells);
 
         //For every cell, try setting it to 0. If the solution is still unique after this, the puzzle is still valid.
@@ -293,7 +326,7 @@ public class SudokuPuzzle {
         return puzzle;
     }
 
-    public ArrayList<SudokuCell> getAllCells(){
+    private ArrayList<SudokuCell> getAllCells(){
         ArrayList<SudokuCell> cells = new ArrayList<>();
         for (int y = 0; y < boardSize; y++)
             for (int x = 0; x < boardSize; x++)
@@ -314,7 +347,7 @@ public class SudokuPuzzle {
     public String getBoardString(boolean getInitial){
         String s = (getInitial) ? "Initial Sudoku board state:\n" : "Current Sudoku board state:\n";
 
-        char[] divchars = new char[(boardSize * 2) + 1];
+        char[] divchars = new char[((boardSize + blockSize) * 2) + 1];
         Arrays.fill(divchars, '-');
         String lineDivider = new String(divchars);
         lineDivider += "\n";
@@ -322,24 +355,18 @@ public class SudokuPuzzle {
 
         //[NOTE] This is messy!
         for (int y = 0; y < boardSize; y++) {
-            s += "|";
+            s += "| ";
             for (int x = 0; x < boardSize; x++) {
                 SudokuCell XY = board[x][y];
                 if (getInitial){
-                    if (XY.isInitial()){
-                        s += XY;
-                    }
-                    else{
-                        s += " ";
-                    }
+                    if (XY.isInitial()){ s += XY; }
+                    else               { s += " "; }
                 }
-                else {
-                    s += XY;
-                }
-                s += "|";
+                else { s += XY; }
+                s += (x % blockSize == blockSize - 1) ? " | " : " ";
             }
             s += "\n";
-            s += lineDivider;
+            if (y % blockSize == blockSize - 1) { s += lineDivider; }
         }
         return s;
     }

@@ -1,6 +1,5 @@
 package org.tark;
 
-import org.sat4j.tools.SingleSolutionDetector;
 import org.tark.sudoku.SudokuPuzzle;
 
 import java.nio.file.Files;
@@ -23,7 +22,7 @@ public class Main {
         for (int y = 0; y < boardSize; y++) {
             String currentLine = fileInput.get(y);
             for (int x = 0; x < currentLine.length(); x++) {
-                board[x][y] = currentLine.charAt(x)-48;
+                board[x][y] = currentLine.charAt(x) - 48;
             }
         }
 
@@ -37,10 +36,15 @@ public class Main {
         System.out.print(puzzle.getBoardString(false));
         */
 
-        SudokuPuzzle puzzleGenerated = SudokuPuzzle.generatePuzzle(3);
-        puzzleGenerated.solve(false);
-        System.out.print(puzzleGenerated.getBoardString(true));
-        System.out.print(puzzleGenerated.getBoardString(false));
+
+
+
+        for (int x = 0; x < 1000; x++){
+            SudokuPuzzle puzzleGenerated = SudokuPuzzle.generatePuzzle(3);
+            puzzleGenerated.solve(false);
+            System.out.print(puzzleGenerated.getBoardString(true));
+            System.out.print(puzzleGenerated.getBoardString(false));
+        }
 
     }
 }
