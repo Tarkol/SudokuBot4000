@@ -1,5 +1,8 @@
 package org.tark;
 
+import org.sat4j.tools.SingleSolutionDetector;
+import org.tark.sudoku.SudokuPuzzle;
+
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -11,7 +14,7 @@ public class Main {
 
         List<String> fileInput = new ArrayList<>();
         try {
-            fileInput = Files.readAllLines(Paths.get("input"));
+            fileInput = Files.readAllLines(Paths.get("input3x3"));
         } catch (java.io.IOException e) {
             System.out.printf("Error: %s", e);
         }
@@ -24,15 +27,20 @@ public class Main {
             }
         }
 
+        /*
         SudokuPuzzle puzzle = new SudokuPuzzle(board);
 
-        System.out.print(puzzle.calcDIMACSString());
+        System.out.print(puzzle.getClausesString());
         puzzle.solve(true);
 
-        System.out.print(puzzle.getBoardString(0));
-        System.out.print(puzzle.getBoardString(1));
+        System.out.print(puzzle.getBoardString(true));
+        System.out.print(puzzle.getBoardString(false));
+        */
 
-
+        SudokuPuzzle puzzleGenerated = SudokuPuzzle.generatePuzzle(3);
+        puzzleGenerated.solve(false);
+        System.out.print(puzzleGenerated.getBoardString(true));
+        System.out.print(puzzleGenerated.getBoardString(false));
 
     }
 }

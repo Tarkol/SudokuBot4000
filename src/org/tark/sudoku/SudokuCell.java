@@ -1,4 +1,4 @@
-package org.tark;
+package org.tark.sudoku;
 
 /**
  * Created by Tarkol on 27/10/2016.
@@ -14,10 +14,11 @@ public class SudokuCell {
         this.initial = initial;
     }
 
-    public boolean setDigit(int digit){
+    public boolean setDigit(int digit, boolean initial){
         if (this.initial)
             return false;
         this.digit = digit;
+        this.initial = initial;
         return true;
     }
 
@@ -31,6 +32,6 @@ public class SudokuCell {
 
     @Override
     public String toString(){
-        return String.format("Digit: %d\n Initial: %b", this.digit, this.initial);
+        return (digit == 0) ? " " : Integer.toString(digit);
     }
 }
