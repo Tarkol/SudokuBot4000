@@ -41,8 +41,9 @@ public class SudokuPuzzle {
      * Blocks are assumed to be square with size equal to the root of the board size.
      * @param board A 2D array with the initial state of the sudoku puzzle.
      */
+    //TODO: Can go wrong if the board is not square
     public SudokuPuzzle(int[][] board) {
-        this.blockSize = (int)Math.sqrt(new Double(board.length));
+        this.blockSize = (int)Math.sqrt(board.length);
         this.boardSize = board.length;
         this.board = new SudokuCell[boardSize][boardSize];
         for (int y = 0; y < boardSize; y++){
@@ -286,24 +287,18 @@ public class SudokuPuzzle {
      * @param blockSize The size of the blocks that make up the overall puzzle.
      * @return A SudokuPuzzle object that represents the puzzle.
      */
-    //TODO: actually make this work.
+    //TODO: Reuse the same solver instead of making a new one for every number.
     public static SudokuPuzzle generatePuzzle(int blockSize){
-        //First create and solve an empty puzzle. This will be the solution to the puzzle we are generating.
-        /*
-        1) start with an empty board
-        2) add a random number at one of the free cells (the cell is chosen randomly,
-           and the number is chosen randomly from the list of numbers valid for this cell according to the SuDoKu rules)
-        3) Use the backtracking solver to check if the current board has at least one valid solution.
-           If not, undo step 2 and repeat with another number and cell.
-           Note that this step might produce full valid boards on its own, but those are in no way random.
-        4) Repeat until the board is completely filled with numbers
-         */
+        //To generate a puzzle we will start by generating a filled board state,
+        //then remove numbers from the board to create the initial puzzle.
+
+        //First create an empty puzzle. Then we get all the cells and randomize the order we iterate through them.
         SudokuPuzzle puzzle = new SudokuPuzzle(blockSize);
         ArrayList<SudokuCell>cells = puzzle.getAllCells();
         Collections.shuffle(cells);
+
+        //Then randomly assign values to each cell. If this results in an invalid puzzle, try a different number.
         Random rng = new Random();
-
-
         int cellsDone = 0;
         while (cellsDone < puzzle.boardSize * puzzle.boardSize){
             cells.get(cellsDone).setDigit(rng.nextInt(puzzle.boardSize) + 1, false);
@@ -313,7 +308,7 @@ public class SudokuPuzzle {
             }
         }
 
-        //Get all cells in the puzzle, put them in a random order.
+        //Reshuffle the order of the cells.
         Collections.shuffle(cells);
 
         //For every cell, try setting it to 0. If the solution is still unique after this, the puzzle is still valid.

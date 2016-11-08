@@ -41,9 +41,10 @@ public class Main {
 
         for (int x = 0; x < 1000; x++){
             SudokuPuzzle puzzleGenerated = SudokuPuzzle.generatePuzzle(3);
-            puzzleGenerated.solve(false);
+            //puzzleGenerated.solve(false);
             System.out.print(puzzleGenerated.getBoardString(true));
-            System.out.print(puzzleGenerated.getBoardString(false));
+            //System.out.print(puzzleGenerated.getBoardString(false));
+            System.out.println("------------------------------------------------");
         }
 
     }
