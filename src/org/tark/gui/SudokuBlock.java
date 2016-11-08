@@ -47,7 +47,7 @@ public class SudokuBlock extends JPanel {
         Action action = new AbstractAction() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                SudokuBoard parent = (SudokuBoard)getParent();
+                SudokuUIBoard parent = (SudokuUIBoard)getParent();
             }
         };
         cell.addActionListener(action);

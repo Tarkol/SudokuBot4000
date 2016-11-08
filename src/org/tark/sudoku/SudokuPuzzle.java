@@ -204,6 +204,14 @@ public class SudokuPuzzle {
         return solution.length > 0;
     }
 
+    public void reset(){
+        for (int y = 0; y < boardSize; y++) {
+            for (int x = 0; x < boardSize; x++) {
+                board[x][y].setDigit(0, false);
+            }
+        }
+    }
+
     /**
      * Gets the DIMACs output for the solved puzzle.
      * @param clauses The set of clauses to use when solving. [NOTE] rather not have this really
