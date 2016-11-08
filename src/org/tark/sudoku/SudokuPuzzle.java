@@ -2,8 +2,6 @@ package org.tark.sudoku;
 
 import org.sat4j.core.VecInt;
 import org.sat4j.minisat.SolverFactory;
-import org.sat4j.minisat.orders.RandomLiteralSelectionStrategy;
-import org.sat4j.minisat.orders.RandomWalkDecorator;
 import org.sat4j.specs.*;
 
 import java.util.ArrayList;
@@ -54,6 +52,12 @@ public class SudokuPuzzle {
     }
 
     public int getBoardSize() { return boardSize; }
+
+    public int getBlockSize() { return blockSize; }
+
+    public SudokuCell getCell(int x, int y){
+        return board[x][y];
+    }
 
     public String getClausesString(){
         ArrayList<ArrayList<Integer>> allClauses = this.calcClauses();

@@ -1,5 +1,7 @@
 package org.tark.gui;
 
+import org.tark.sudoku.SudokuPuzzle;
+
 import javax.swing.*;
 import java.awt.*;
 
@@ -11,8 +13,10 @@ public class GUIMain extends JFrame {
 
     public GUIMain(){
         setTitle("Sudoku Bot 400000");
+        this.setLayout(new FlowLayout());
         Container contents = getContentPane();
-        contents.add(new PuzzleGrid(9));
+        contents.add(new SudokuBoard(new SudokuPuzzle(3)));
+        contents.add(new Menu());
         setDefaultCloseOperation(EXIT_ON_CLOSE);
         pack();
     }
