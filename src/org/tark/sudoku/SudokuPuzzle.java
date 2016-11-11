@@ -298,31 +298,22 @@ public class SudokuPuzzle {
 
     private boolean cellHasValueConflict(SudokuCell cell, int cellX, int cellY){
 
-        int[] values = new int[boardSize];
-        //Check cell column.
-        for (int x = 0; x < boardSize; x++) {
-            int cellValue = board[x][cellY].getDigit();
-            if (cellValue > 0) {
-                values[cellValue - 1]++;
-                if (values[cellValue - 1] > 1) {
-                    return true;
-                }
-            }
-        }
-
-        Arrays.fill(values, 0);
         //Check cell row
-        for (int y = 0; y < boardSize; y++) {
-            int cellValue = board[cellX][y].getDigit();
-            if (cellValue > 0) {
-                values[cellValue - 1]++;
-                if (values[cellValue - 1] > 1) {
+        for (int x = 0; x < boardSize; x++) {
+            SudokuCell cellInBoard = board[x][cellY];
+            if (cellInBoard.getDigit() > 0 && cellInBoard.getDigit() == cell.getDigit() && cellInBoard != cell) {
                     return true;
-                }
             }
         }
 
-        Arrays.fill(values, 0);
+        //Check cell column
+        for (int y = 0; y < boardSize; y++) {
+            SudokuCell cellInBoard = board[cellX][y];
+            if (cellInBoard.getDigit() > 0 && cellInBoard.getDigit() == cell.getDigit() && cellInBoard != cell) {
+                return true;
+            }
+        }
+
         //Check cell block
         int blockX = cellX / blockSize;
         int blockY = cellY / blockSize;
@@ -330,15 +321,13 @@ public class SudokuPuzzle {
             for (int y = 0; y < blockSize; y++) {
                 int trueX = x + (blockX * blockSize);
                 int trueY = y + (blockY * blockSize);
-                int cellValue = board[trueX][trueY].getDigit();
-                if (cellValue > 0) {
-                    values[cellValue - 1]++;
-                    if (values[cellValue - 1] > 1) {
-                        return true;
-                    }
+                SudokuCell cellInBoard = board[trueX][trueY];
+                if (cellInBoard.getDigit() > 0 && cellInBoard.getDigit() == cell.getDigit() && cellInBoard != cell) {
+                    return true;
                 }
             }
         }
+
         return false;
     }
     /**
@@ -363,13 +352,12 @@ public class SudokuPuzzle {
             Collections.shuffle(boardLocations);
             int[] loc = boardLocations.get(0);
             SudokuCell cell = puzzle.getCell(loc[0], loc[1]);
-            cell.setDigit(rng.nextInt(puzzle.boardSize) + 1, false);
-            if (!puzzle.cellHasValueConflict(cell, loc[0], loc[1]) && puzzle.hasSolution()) {
-
-                boardLocations.remove(loc);
-            }
+            cell.setDigit(rng.nextInt(puzzle.boardSize) + 1, true);
+                if (!puzzle.cellHasValueConflict(cell, loc[0], loc[1]) && puzzle.hasSolution()) {
+                    boardLocations.remove(loc);
+                }
             else{
-                cell.setDigit(0, false);
+                cell.reset();
             }
         }
 
@@ -384,7 +372,7 @@ public class SudokuPuzzle {
         //If it's not unique, restore the cell's previous value.
         for (SudokuCell cell:cells){
             int lastCellValue = cell.getDigit();
-            cell.setDigit(0, false);
+            cell.reset();
             if (!puzzle.hasUniqueSolution()) { cell.setDigit(lastCellValue, true); }
         }
         return puzzle;

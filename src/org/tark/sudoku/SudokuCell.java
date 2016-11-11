@@ -22,6 +22,11 @@ public class SudokuCell {
         return true;
     }
 
+    public void reset(){
+        this.digit = 0;
+        this.initial = false;
+    }
+
     public int getDigit(){
         return this.digit;
     }
