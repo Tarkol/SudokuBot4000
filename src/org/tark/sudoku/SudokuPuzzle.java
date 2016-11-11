@@ -164,7 +164,7 @@ public class SudokuPuzzle {
         //Clauses for fixed cells
         for (int y = 0; y < boardSize; y++) {
             for (int x = 0; x < boardSize; x++) {
-                if (board[x][y].getDigit() > 0){
+                if (board[x][y].getDigit() > 0 && board[x][y].isInitial()){
                     int fixedClause = (100 * x)  + (10 * y)  + board[x][y].getDigit();
                     subclause = new ArrayList<>();
                     subclause.add(fixedClause);
@@ -204,6 +204,7 @@ public class SudokuPuzzle {
         return solution.length > 0;
     }
 
+    //TODO: make this work
     public void reset(){
         for (int y = 0; y < boardSize; y++) {
             for (int x = 0; x < boardSize; x++) {
@@ -294,6 +295,52 @@ public class SudokuPuzzle {
         if (solution == null || solution.length == 0) { return false; }
         return true;
     }
+
+    private boolean cellHasValueConflict(SudokuCell cell, int cellX, int cellY){
+
+        int[] values = new int[boardSize];
+        //Check cell column.
+        for (int x = 0; x < boardSize; x++) {
+            int cellValue = board[x][cellY].getDigit();
+            if (cellValue > 0) {
+                values[cellValue - 1]++;
+                if (values[cellValue - 1] > 1) {
+                    return true;
+                }
+            }
+        }
+
+        Arrays.fill(values, 0);
+        //Check cell row
+        for (int y = 0; y < boardSize; y++) {
+            int cellValue = board[cellX][y].getDigit();
+            if (cellValue > 0) {
+                values[cellValue - 1]++;
+                if (values[cellValue - 1] > 1) {
+                    return true;
+                }
+            }
+        }
+
+        Arrays.fill(values, 0);
+        //Check cell block
+        int blockX = cellX / blockSize;
+        int blockY = cellY / blockSize;
+        for (int x = 0; x < blockSize; x ++){
+            for (int y = 0; y < blockSize; y++) {
+                int trueX = x + (blockX * blockSize);
+                int trueY = y + (blockY * blockSize);
+                int cellValue = board[trueX][trueY].getDigit();
+                if (cellValue > 0) {
+                    values[cellValue - 1]++;
+                    if (values[cellValue - 1] > 1) {
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
+    }
     /**
      * Generates a sudoku puzzle with a unique solution.
      * @param blockSize The size of the blocks that make up the overall puzzle.
@@ -306,19 +353,29 @@ public class SudokuPuzzle {
 
         //First create an empty puzzle. Then we get all the cells and randomize the order we iterate through them.
         SudokuPuzzle puzzle = new SudokuPuzzle(blockSize);
-        ArrayList<SudokuCell>cells = puzzle.getAllCells();
-        Collections.shuffle(cells);
+
+
+        ArrayList<int[]> boardLocations = puzzle.getAllBoardCoordinates();
 
         //Then randomly assign values to each cell. If this results in an invalid puzzle, try a different number.
         Random rng = new Random();
-        int cellsDone = 0;
-        while (cellsDone < puzzle.boardSize * puzzle.boardSize){
-            cells.get(cellsDone).setDigit(rng.nextInt(puzzle.boardSize) + 1, false);
-            if (puzzle.hasSolution()) { cellsDone++; }
-            else {
-                cells.get(cellsDone).setDigit(0, false);
+        while (!boardLocations.isEmpty()){
+            Collections.shuffle(boardLocations);
+            int[] loc = boardLocations.get(0);
+            SudokuCell cell = puzzle.getCell(loc[0], loc[1]);
+            cell.setDigit(rng.nextInt(puzzle.boardSize) + 1, false);
+            if (!puzzle.cellHasValueConflict(cell, loc[0], loc[1]) && puzzle.hasSolution()) {
+
+                boardLocations.remove(loc);
+            }
+            else{
+                cell.setDigit(0, false);
             }
         }
+
+
+        ArrayList<SudokuCell>cells = puzzle.getAllCells();
+        Collections.shuffle(cells);
 
         //Reshuffle the order of the cells.
         Collections.shuffle(cells);
@@ -341,6 +398,18 @@ public class SudokuPuzzle {
         return cells;
     }
 
+    private ArrayList<int[]> getAllBoardCoordinates(){
+        ArrayList<int[]> coords = new ArrayList<>();
+        for (int y = 0; y < boardSize; y++){
+            for (int x = 0; x < boardSize; x++){
+                coords.add(new int[] {x, y});
+            }
+        }
+        return coords;
+    }
+
+
+    //region String functions to print the board to command line
     @Override
     public String toString() {
         return getBoardString(false);
@@ -377,4 +446,5 @@ public class SudokuPuzzle {
         }
         return s;
     }
+    //endregion
 }

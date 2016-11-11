@@ -16,7 +16,7 @@ public class SudokuUIBoard extends JPanel {
     private JPanel[][] blocks;
     private SudokuPuzzle puzzle;
 
-    private final Color COLOUR_INITIAL = Color.GRAY;
+    private final Color COLOUR_INITIAL = Color.LIGHT_GRAY;
     private final Color COLOUR_NORMAL = Color.BLACK;
 
     SudokuUIBoard(int blockSize){
