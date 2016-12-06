@@ -14,11 +14,13 @@ import java.awt.event.ActionListener;
 public class GUIMain extends JFrame implements ActionListener {
 
     private SudokuUIBoard sudokuUI;
+    private SudokuUIModel sudokuModel;
     private Menu menu;
 
     public GUIMain(){
         setTitle("Sudoku Bot 4000");
-        sudokuUI = new SudokuUIBoard(3);
+        sudokuModel = new SudokuUIModel();
+        sudokuUI = new SudokuUIBoard(sudokuModel);
         menu = new Menu(this);
         this.setLayout(new FlowLayout());
         Container contents = getContentPane();
@@ -39,10 +41,12 @@ public class GUIMain extends JFrame implements ActionListener {
 
         switch (s){
             case "new":
-                sudokuUI.loadPuzzle(SudokuPuzzle.generatePuzzle(3));
+                    sudokuModel.loadPuzzle(SudokuPuzzle.generatePuzzle(3));
+                    sudokuUI.refreshBoard();
                 break;
             case "solve":
-                sudokuUI.solvePuzzle();
+                sudokuModel.solvePuzzle();
+                sudokuUI.refreshBoard();
                 break;
             default: break;
         }
