@@ -67,9 +67,9 @@ public class SudokuPuzzle {
         for (ArrayList<Integer> subClauses:allClauses) {
             for (Integer clause:subClauses){
                 clauseString += clause + " ";
-                numClauses++;
             }
             clauseString += "\n";
+            numClauses++;
         }
         String header = String.format("p cnf %d %d\n", numVars, numClauses);
         return header + clauseString;
@@ -134,7 +134,7 @@ public class SudokuPuzzle {
                         }
                     }
                 }
-                allClauses.add(clause);
+               allClauses.add(clause);
             }
         }
 

@@ -1,29 +1,27 @@
 package org.tark.gui;
 
 import org.tark.sudoku.SudokuCell;
-import org.tark.sudoku.SudokuPuzzle;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 
 /**
  * Created by conno on 02/11/2016.
  */
 public class SudokuUIBoard extends JPanel {
 
-    private SudokuUIModel model;
+    //private SudokuUIModel model;
     private int boardSize;
     private int blockSize;
     private JTextField[][] cells;
     private JPanel[][] blocks;
 
-    //private SudokuPuzzle puzzle;
-
     private final Color COLOUR_INITIAL = Color.LIGHT_GRAY;
     private final Color COLOUR_NORMAL = Color.BLACK;
 
-    SudokuUIBoard(SudokuUIModel model){
+    SudokuUIBoard(){
         this.model = model;
         this.boardSize = model.getBoardSize();
         this.blockSize = model.getBlockSize();
@@ -45,14 +43,7 @@ public class SudokuUIBoard extends JPanel {
                 cell.setBorder(BorderFactory.createEtchedBorder());
                 cell.setFont(new Font("Sans Serif", Font.PLAIN, 32));
                 cell.setPreferredSize(new Dimension(50, 50));
-
-                Action action = new AbstractAction() {
-                    @Override
-                    public void actionPerformed(ActionEvent e) {
-                        SudokuUIBoard parent = (SudokuUIBoard)getParent();
-                    }
-                };
-                cell.addActionListener(action);
+                cell.setDocument(new SudokuCellLimit(boardSize));
                 cells[x][y] = cell;
             }
         }
@@ -93,6 +84,10 @@ public class SudokuUIBoard extends JPanel {
                     cellsInBlock[(x * blockSize) + y] = cells[x + (blockX * blockSize)][y + (blockY * blockSize)];
 
         return cellsInBlock;
+    }
+
+    public int getCellValue(int x, int y){
+        return Integer.parseInt(cells[x][y].getText());
     }
 
     public void setCellValue(int x, int y, int value){
@@ -137,5 +132,8 @@ public class SudokuUIBoard extends JPanel {
         return blocks[blockX][blockY];
     }
 
+    public void addCellListener(int row, int col, ActionListener cellListener){
+        cells[row][col].addActionListener(cellListener);
+    }
 
 }

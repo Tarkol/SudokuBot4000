@@ -13,18 +13,20 @@ import java.awt.event.ActionListener;
 //TODO: Actually make a gui.
 public class GUIMain extends JFrame implements ActionListener {
 
-    private SudokuUIBoard sudokuUI;
+    private SudokuUIBoard sudokuView;
     private SudokuUIModel sudokuModel;
+    private SudokuUIController sudokuController;
     private Menu menu;
 
     public GUIMain(){
         setTitle("Sudoku Bot 4000");
         sudokuModel = new SudokuUIModel();
-        sudokuUI = new SudokuUIBoard(sudokuModel);
+        sudokuView = new SudokuUIBoard();
+        sudokuController = new SudokuUIController(sudokuView, sudokuModel);
         menu = new Menu(this);
         this.setLayout(new FlowLayout());
         Container contents = getContentPane();
-        contents.add(sudokuUI);
+        contents.add(sudokuView);
         contents.add(menu);
         setDefaultCloseOperation(EXIT_ON_CLOSE);
         pack();
@@ -41,12 +43,12 @@ public class GUIMain extends JFrame implements ActionListener {
 
         switch (s){
             case "new":
-                    sudokuModel.loadPuzzle(SudokuPuzzle.generatePuzzle(3));
-                    sudokuUI.refreshBoard();
+                sudokuModel.loadPuzzle(SudokuPuzzle.generatePuzzle(3));
+                sudokuView.refreshBoard();
                 break;
             case "solve":
                 sudokuModel.solvePuzzle();
-                sudokuUI.refreshBoard();
+                sudokuView.refreshBoard();
                 break;
             default: break;
         }

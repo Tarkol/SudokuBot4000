@@ -3,6 +3,9 @@ package org.tark.gui;
 import org.tark.sudoku.SudokuCell;
 import org.tark.sudoku.SudokuPuzzle;
 
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+
 /**
  * Acts as a separator between the UI and the Sudoku classes.
  * Needs a reference to the actual board I think.
@@ -32,6 +35,11 @@ class SudokuUIModel {
         return puzzle.getCell(x, y);
     }
 
+    void setCell(int x, int y, int value){
+        puzzle.getCell(x, y).setDigit(value, false);
+    }
+
+    //stubs
     public void updateCell(){}
 
     public void generatePuzzle(){}
@@ -41,5 +49,6 @@ class SudokuUIModel {
     }
 
     public void getHints(){}
+
 
 }
