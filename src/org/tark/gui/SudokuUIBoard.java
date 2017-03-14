@@ -32,6 +32,27 @@ class SudokuUIBoard extends JPanel {
         makeBoard();
     }
 
+    void changeBlockSize(int blockSize){
+        clearBoard();
+        this.blockSize = blockSize;
+        boardSize = blockSize * blockSize;
+        makeBoard();
+        revalidate();
+    }
+
+    private void clearBoard(){
+        for (int y = 0; y < boardSize; y ++){
+            for (int x = 0; x < boardSize; x++){
+                //this.remove(cells[x][y]);
+            }
+        }
+        for (int y = 0; y < blockSize; y ++){
+            for (int x = 0; x < blockSize; x++){
+                this.remove(blocks[x][y]);
+            }
+        }
+    }
+
     private void makeBoard(){
         GridLayout boardLayout = new GridLayout(blockSize, blockSize, 5, 5);
         this.setLayout(boardLayout);

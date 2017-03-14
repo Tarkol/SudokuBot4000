@@ -24,9 +24,6 @@ class SudokuUIController{
         this.view = sudokuView;
         this.model = sudokuModel;
 
-        //generatePuzzle();
-        solver = new SudokuSolver(model);
-
         for (int y = 0; y < model.getBoardSize(); y++) {
             for (int x = 0; x < model.getBoardSize(); x++) {
                 this.view.addCellListener(x, y, new CellListener(x, y));
@@ -34,13 +31,22 @@ class SudokuUIController{
         }
     }
 
+    void changeBoardSize(int blockSize) {
+        model = new SudokuPuzzle(blockSize);
+        //view = new SudokuUIBoard(blockSize);
+        view.changeBlockSize(blockSize);
+    }
+
     void generatePuzzle(){
         SudokuGenerator.generatePuzzle(model);
+        solver = new SudokuSolver(model);
+
         setBoardFromModel();
         System.out.print(model);
     }
 
     void solvePuzzle(){
+        solver = new SudokuSolver(model);
         solver.solve(true, true);
         setBoardFromModel();
     }
