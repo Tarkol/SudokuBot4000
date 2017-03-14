@@ -7,6 +7,8 @@ import org.tark.sudoku.SudokuSolver;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.FocusEvent;
+import java.awt.event.FocusListener;
 
 /**
  * Controller for Sudoku UI, listens for changes in the puzzle grid and passes the information to the model.
@@ -22,7 +24,7 @@ class SudokuUIController{
         this.view = sudokuView;
         this.model = sudokuModel;
 
-        generatePuzzle();
+        //generatePuzzle();
         solver = new SudokuSolver(model);
 
         for (int y = 0; y < model.getBoardSize(); y++) {
@@ -39,7 +41,7 @@ class SudokuUIController{
     }
 
     void solvePuzzle(){
-        solver.solve();
+        solver.solve(true, true);
         setBoardFromModel();
     }
 
@@ -52,7 +54,7 @@ class SudokuUIController{
         }
     }
 
-    private class CellListener implements ActionListener{
+    private class CellListener implements ActionListener, FocusListener{
 
         private int row;
         private int col;
@@ -66,6 +68,16 @@ class SudokuUIController{
         public void actionPerformed(ActionEvent e) {
             if (!model.getCell(row, col).isInitial())
                 model.getCell(row, col).setDigit(view.getCellValue(row, col), false);
+        }
+
+        public void focusGained(FocusEvent e){
+            //mb highlight cell?
+            view.highlightCell(row, col);
+        }
+
+        public void focusLost(FocusEvent e){
+            //also update model here, unhihjlihgt cell/rowbloculm>?
+            view.unhighlightCell(row, col);
         }
     }
 }

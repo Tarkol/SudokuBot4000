@@ -2,6 +2,7 @@ package org.tark.sudoku;
 
 import org.sat4j.core.VecInt;
 import org.sat4j.minisat.SolverFactory;
+import org.sat4j.minisat.core.IntQueue;
 import org.sat4j.specs.ContradictionException;
 import org.sat4j.specs.IProblem;
 import org.sat4j.specs.ISolver;
@@ -15,12 +16,13 @@ import java.util.ArrayList;
 public class SudokuSolver {
 
     private SudokuPuzzle puzzle;
-    private ArrayList<ArrayList<Integer>> clauses;
+    private final ArrayList<ArrayList<Integer>> clausesBase;
+    //private ArrayList<ArrayList<Integer>> clausesVariables;
     private boolean verbose;
 
     public SudokuSolver(SudokuPuzzle puzzle){
         this.puzzle = puzzle;
-        clauses = calcClauses();
+        clausesBase = calcClausesBase();
         verbose = false;
     }
 
@@ -31,11 +33,11 @@ public class SudokuSolver {
      *  //TODO remove this
      * @return True if the puzzle has been solved successfully.
      */
-    public boolean solve(){
-        clauses = calcClauses();
-        int[] solution = getSolution();
+    public boolean solve(boolean saveSolution, boolean fromInitial){
+        ArrayList<ArrayList<Integer>> clausesVariables = calcClausesVariables(fromInitial);
+        int[] solution = getSolution(clausesVariables);
         if (solution != null && solution.length > 0) {
-            setCellsFromDIMACS(solution);
+            if (saveSolution) { setCellsFromDIMACS(solution); }
             return true;
         }
         else { return false; }
@@ -47,16 +49,20 @@ public class SudokuSolver {
      * [NOTE] deal with exceptions in a better way than nulls
      */
     //TODO: Maybe actually do exception handling. Maybe doesn't have to be its own method?
-    private int[] getSolution(){
+    private int[] getSolution(ArrayList<ArrayList<Integer>> clausesVariables){
         long startTime = System.currentTimeMillis();
         long parseTime;
         long SATTime;
         int[] solution = {};
         try {
             ISolver solver = SolverFactory.newDefault();
-            solver.newVar(889);
-            solver.setExpectedNumberOfClauses(clauses.size());
-            for (ArrayList<Integer> clause : clauses) {
+            //solver.newVar();
+            solver.setExpectedNumberOfClauses(clausesBase.size() + clausesVariables.size());
+            for (ArrayList<Integer> clause : clausesBase) {
+                int[] clauseArray = clause.stream().mapToInt(i -> i).toArray();
+                solver.addClause(new VecInt(clauseArray));
+            }
+            for (ArrayList<Integer> clause : clausesVariables) {
                 int[] clauseArray = clause.stream().mapToInt(i -> i).toArray();
                 solver.addClause(new VecInt(clauseArray));
             }
@@ -83,7 +89,7 @@ public class SudokuSolver {
             return solution;
         }
         catch (ContradictionException e){
-            System.out.println("CNF Contradiction! " + e);
+            System.out.println("CNF Contradiction! " + e.getMessage());
             return null;
         }
         catch (TimeoutException e){
@@ -92,22 +98,17 @@ public class SudokuSolver {
         }
     }
 
-    public boolean hasSolution(){
-        clauses = calcClauses();
-        int[] solution = getSolution();
-        if (solution == null || solution.length == 0) { return false; }
-        return true;
-    }
-
     /**
      * Checks if the puzzle has a single unique solution. That is, each cell has only one correct value.
      * @return True if there is only one unique solution.
      */
     //TODO: Make this not awful. Use same solver again instead of reinstantiating everything.
     public boolean hasUniqueSolution(){
-        clauses = calcClauses(); //TODO I dont like this being here, only good for puzzle generation maybe split clauses into initial + current, then can check if puzzle solvable from vurren tpoint ect
+        ArrayList<ArrayList<Integer>> clausesVariables = calcClausesVariables(true);
+
         //First, get the solution for the current puzzle state.
-        int[] solution = getSolution();
+        //If a solution does not exist then there is not a unique solution.
+        int[] solution = getSolution(clausesVariables);
         if (solution == null || solution.length == 0) { return false; }
 
         //Add a negation clause using the solution.
@@ -115,11 +116,11 @@ public class SudokuSolver {
         ArrayList<Integer> negationClause = new ArrayList<>();
         for (int clause:solution)
             if (clause > 0) { negationClause.add(clause * -1); }
-        clauses.add(negationClause);
+        clausesVariables.add(negationClause);
 
         //Try to find another solution using this additional constraint.
         //If no other solution is found then the puzzle solution is unique.
-        solution = getSolution();
+        solution = getSolution(clausesVariables);
         if (solution == null || solution.length == 0) { return true; }
         else { return false; }
     }
@@ -127,11 +128,13 @@ public class SudokuSolver {
     @Override
     public String toString(){
         int boardSize = puzzle.getBoardSize();
-        ArrayList<ArrayList<Integer>> allClauses = this.calcClauses();
         int numVars = boardSize * boardSize * boardSize;
         String clauseString = "";
         int numClauses = 0;
-        for (ArrayList<Integer> subClauses:allClauses) {
+        ArrayList<ArrayList<Integer>> allClauses = new ArrayList<>();
+        allClauses.addAll(clausesBase);
+        allClauses.addAll(calcClausesVariables(false));
+        for (ArrayList<Integer> subClauses : allClauses) {
             for (Integer clause:subClauses){
                 clauseString += clause + " ";
             }
@@ -142,12 +145,11 @@ public class SudokuSolver {
         return header + clauseString;
     }
 
-    //TODO: Bad, doesn't work for 2 digit co-ordinates.
-    private ArrayList<ArrayList<Integer>> calcClauses(){
+    private ArrayList<ArrayList<Integer>> calcClausesBase(){
         int boardSize = puzzle.getBoardSize();
         int blockSize = puzzle.getBlockSize();
-        SudokuCell[][] board = puzzle.getBoard();
-        ArrayList<ArrayList<Integer>> allClauses = new ArrayList<>();
+        int rowLength = boardSize * boardSize;
+        ArrayList<ArrayList<Integer>> baseClauses = new ArrayList<>();
         ArrayList<Integer> clause;
         ArrayList<Integer> subclause;
 
@@ -156,17 +158,17 @@ public class SudokuSolver {
             for (int x = 0; x < boardSize; x++){
                 clause = new ArrayList<>();
                 for (int i = 1; i <= boardSize; i++){
-                    clause.add((x * 100) + (y * 10) + i);
+                    clause.add((x * boardSize) + (y * rowLength) + i);
                     for (int i2 = 1; i2 <= boardSize; i2++){
                         if (i != i2 && i2 > i) {
                             subclause = new ArrayList<>();
-                            subclause.add(-1 * ((100 * x)  + (10 * y)  + i));
-                            subclause.add(-1 * ((100 * x)  + (10 * y)  + i2));
-                            allClauses.add(subclause);
+                            subclause.add(-1 * ((x * boardSize) + (y * rowLength)  + i));
+                            subclause.add(-1 * ((x * boardSize) + (y * rowLength)  + i2));
+                            baseClauses.add(subclause);
                         }
                     }
                 }
-                allClauses.add(clause);
+                baseClauses.add(clause);
             }
         }
 
@@ -175,17 +177,17 @@ public class SudokuSolver {
             for (int i = 1; i <= boardSize; i++){
                 clause = new ArrayList<>();
                 for (int y = 0; y < boardSize; y ++){
-                    clause.add((x * 100) + (y * 10) + i);
+                    clause.add((x * boardSize) + (y * rowLength) + i);
                     for (int y2 = 0; y2 < boardSize; y2++){
                         if (y != y2 && y2 > y){
                             subclause = new ArrayList<>();
-                            subclause.add(-1 * ((100 * x)  + (10 * y)  + i));
-                            subclause.add(-1 * ((100 * x)  + (10 * y2) + i));
-                            allClauses.add(subclause);
+                            subclause.add(-1 * ((x * boardSize) + (y * rowLength)  + i));
+                            subclause.add(-1 * ((x * boardSize) + (y2 * rowLength) + i));
+                            baseClauses.add(subclause);
                         }
                     }
                 }
-                allClauses.add(clause);
+                baseClauses.add(clause);
             }
         }
 
@@ -194,17 +196,18 @@ public class SudokuSolver {
             for (int i = 1; i <= boardSize; i++){
                 clause = new ArrayList<>();
                 for (int x = 0; x < boardSize; x ++){
-                    clause.add((x * 100) + (y * 10) + i);
+                    clause.add((x * boardSize) + (y * rowLength) + i);
                     for (int x2 = 0; x2 < boardSize; x2++){
                         if (x != x2 && x2 > x){
                             subclause = new ArrayList<>();
-                            subclause.add(-1 * ((100 * x)  + (10 * y) + i));
-                            subclause.add(-1 * ((100 * x2) + (10 * y) + i));
-                            allClauses.add(subclause);
+                            subclause.add(-1 * ((x  * boardSize) + (y * rowLength) + i));
+                            subclause.add(-1 * ((x2 * boardSize) + (y * rowLength) + i));
+                            baseClauses.add(subclause);
                         }
                     }
                 }
-                allClauses.add(clause);
+
+                baseClauses.add(clause);
             }
         }
 
@@ -215,44 +218,57 @@ public class SudokuSolver {
                     clause = new ArrayList<>();
                     for (int x = 0; x < blockSize; x ++){
                         for (int y = 0; y < blockSize; y++) {
-                            clause.add((100 * (x + (blockX * blockSize))) + (10 * (y + (blockY * blockSize))) + i);
+                            clause.add(((x + (blockX * blockSize)) * boardSize) + ((y + (blockY * blockSize)) * rowLength) + i);
                             for (int y2 = 0; y2 < blockSize; y2++) {
                                 if (y != y2 && y2 > y){
                                     subclause = new ArrayList<>();
-                                    subclause.add(-1 * ((100 * (x + (blockX * blockSize))) + (10 * (y  + (blockY * blockSize))) + i));
-                                    subclause.add(-1 * ((100 * (x + (blockX * blockSize))) + (10 * (y2 + (blockY * blockSize))) + i));
-                                    allClauses.add(subclause);
+                                    subclause.add(-1 * (((x + (blockX * blockSize)) * boardSize) + ((y   + (blockY * blockSize)) * rowLength) + i));
+                                    subclause.add(-1 * (((x + (blockX * blockSize)) * boardSize) + ((y2  + (blockY * blockSize)) * rowLength) + i));
+                                    baseClauses.add(subclause);
                                 }
                             }
                         }
                     }
-                    allClauses.add(clause);
+                    baseClauses.add(clause);
                 }
             }
         }
+        return baseClauses;
+    }
+
+    private ArrayList<ArrayList<Integer>> calcClausesVariables(boolean onlyInitial){
+        int boardSize = puzzle.getBoardSize();
+        int rowLength = boardSize * boardSize;
+        SudokuCell[][] board = puzzle.getBoard();
+
+        ArrayList<ArrayList<Integer>> variableClauses = new ArrayList<>();
+        ArrayList<Integer> subclause;
 
         //Clauses for fixed cells
         for (int y = 0; y < boardSize; y++) {
             for (int x = 0; x < boardSize; x++) {
-                if (board[x][y].getDigit() > 0 && board[x][y].isInitial()){
-                    int fixedClause = (100 * x)  + (10 * y)  + board[x][y].getDigit();
-                    subclause = new ArrayList<>();
-                    subclause.add(fixedClause);
-                    allClauses.add(subclause);
+                if (board[x][y].getDigit() > 0){
+                    if ((!onlyInitial || board[x][y].isInitial())){
+                        int fixedClause = (x * boardSize) + (y * rowLength)  + board[x][y].getDigit();
+                        subclause = new ArrayList<>();
+                        subclause.add(fixedClause);
+                        variableClauses.add(subclause);
+                    }
                 }
             }
         }
-        return allClauses;
+        return variableClauses;
     }
 
-    //TODO: Bad, doesn't work for 2 digit co-ordinates.
     private void setCellsFromDIMACS(int[] vars) {
+        int boardSize = puzzle.getBoardSize();
+        int rowLength = boardSize * boardSize;
         SudokuCell[][] board = puzzle.getBoard();
         for (int var : vars) {
             if (var > 0) {
-                int x = (var / 100) % 10;
-                int y = (var / 10) % 10;
-                int num = var % 10;
+                int x = ((var - 1) % rowLength) / boardSize;
+                int y = (var - 1) / rowLength;
+                int num = ((var - 1) % boardSize) + 1;
                 if (board[x][y].setDigit(num, false)) {
                     if (verbose)
                         System.out.printf("Assigning value %d to (%d, %d).\n", num, x, y);

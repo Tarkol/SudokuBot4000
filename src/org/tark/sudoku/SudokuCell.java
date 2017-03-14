@@ -37,6 +37,6 @@ public class SudokuCell {
 
     @Override
     public String toString(){
-        return (digit == 0) ? " " : Integer.toString(digit);
+        return (digit == 0) ? "" : Integer.toString(digit);
     }
 }

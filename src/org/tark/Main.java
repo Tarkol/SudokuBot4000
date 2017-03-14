@@ -15,7 +15,7 @@ public class Main {
 
         List<String> fileInput = new ArrayList<>();
         try {
-            fileInput = Files.readAllLines(Paths.get("input3x3"));
+            fileInput = Files.readAllLines(Paths.get("input4x4blank"));
         } catch (java.io.IOException e) {
             System.out.printf("Error: %s", e);
         }
@@ -34,9 +34,9 @@ public class Main {
         //SudokuPuzzle puzzle = new SudokuPuzzle(board);
         SudokuSolver solver = new SudokuSolver(puzzle);
 
-        System.out.print(solver);
-        solver.setVerbosity(true);
-        solver.solve();
+        //System.out.print(solver);
+        //solver.setVerbosity(true);
+        solver.solve(true, true);
 
         System.out.print(puzzle.getBoardString(true));
         System.out.print(puzzle.getBoardString(false));

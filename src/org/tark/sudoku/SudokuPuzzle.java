@@ -120,8 +120,10 @@ public class SudokuPuzzle {
      */
     public String getBoardString(boolean getInitial){
         String s = (getInitial) ? "Initial Sudoku board state:\n" : "Current Sudoku board state:\n";
+        int digitLength = String.valueOf(boardSize).length();
+        String digitFormat = String.format("%%%s.%ss", digitLength, digitLength); // %x.xs
 
-        char[] divchars = new char[((boardSize + blockSize) * 2) + 1];
+        char[] divchars = new char[((boardSize + blockSize) * (digitLength + 1)) + 1];
         Arrays.fill(divchars, '-');
         String lineDivider = new String(divchars);
         lineDivider += "\n";
@@ -132,11 +134,12 @@ public class SudokuPuzzle {
             s += "| ";
             for (int x = 0; x < boardSize; x++) {
                 SudokuCell XY = board[x][y];
-                if (getInitial){
-                    if (XY.isInitial()){ s += XY; }
-                    else               { s += " "; }
+                if (!getInitial || XY.isInitial()){
+                    s += String.format(digitFormat, XY);
                 }
-                else { s += XY; }
+                else {
+                    s += String.format(digitFormat, "");
+                }
                 s += (x % blockSize == blockSize - 1) ? " | " : " ";
             }
             s += "\n";

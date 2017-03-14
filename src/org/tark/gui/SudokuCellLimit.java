@@ -18,7 +18,7 @@ class SudokuCellLimit extends PlainDocument {
     }
 
     public void insertString( int offset, String  str, AttributeSet attr ) throws BadLocationException {
-        if (str == null) return;
+        if (str == null || str.equals("")) return;
 
         try {
             String currentValue = getText(0, getLength());
@@ -29,6 +29,7 @@ class SudokuCellLimit extends PlainDocument {
         }
         catch (Exception e) {
             return;
+            //todo deal w/ exception
         }
     }
 }

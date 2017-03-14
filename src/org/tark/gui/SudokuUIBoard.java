@@ -3,8 +3,11 @@ package org.tark.gui;
 import org.tark.sudoku.SudokuCell;
 
 import javax.swing.*;
+import javax.swing.event.EventListenerList;
 import java.awt.*;
 import java.awt.event.ActionListener;
+import java.awt.event.FocusListener;
+import java.util.EventListener;
 
 /** GUI component for displaying a Sudoku puzzle. Scalable for puzzles of (hopefully) any size!
  * Relies on a UI controller to set cell states.
@@ -12,7 +15,6 @@ import java.awt.event.ActionListener;
  */
 class SudokuUIBoard extends JPanel {
 
-    //private SudokuUIModel model;
     private int boardSize;
     private int blockSize;
     private JTextField[][] cells;
@@ -20,6 +22,8 @@ class SudokuUIBoard extends JPanel {
 
     private final Color TEXT_COLOUR_INITIAL = Color.LIGHT_GRAY;
     private final Color TEXT_COLOUR_NORMAL = Color.BLACK;
+    private final Color BACK_COLOUR_NORMAL = Color.WHITE;
+    private final Color BACK_COLOUR_HIGHLIGHT = Color.ORANGE;
 
     SudokuUIBoard(int blockSize)
     {
@@ -35,7 +39,7 @@ class SudokuUIBoard extends JPanel {
         cells = new JTextField[boardSize][boardSize];
         blocks = new JPanel[blockSize][blockSize];
 
-        //Make each individual board cell
+        //Make each individual cell
         for (int y = 0; y < boardSize; y++) {
             for (int x = 0; x < boardSize; x++) {
                 JTextField cell = new JTextField("0");
@@ -49,7 +53,7 @@ class SudokuUIBoard extends JPanel {
             }
         }
 
-        //Put the cells into blocks
+        //Put the cells into blocks, add the blocks to the board.
         for (int y = 0; y < blockSize; y++) {
             for (int x = 0; x < blockSize; x++) {
                 GridLayout blockLayout = new GridLayout(blockSize, blockSize, 0, 0);
@@ -100,46 +104,36 @@ class SudokuUIBoard extends JPanel {
             cells[x][y].setForeground(TEXT_COLOUR_NORMAL);
             cells[x][y].setEditable(true);
         }
-
     }
 
-    /* OLD
-    void refreshBoard(){
-        for (int y = 0; y < boardSize; y ++) {
-            for (int x = 0; x <boardSize; x++) {
-                //SudokuCell cell = model.getCell(x, y);
-                JTextField cellUI = cells[x][y];
-                int cellValue = cell.getDigit();
-                cellUI.setText(cellValue == 0 ? "" : Integer.toString(cellValue));
-                if (cell.isInitial()) {
-                    cellUI.setForeground(TEXT_COLOUR_INITIAL);
-                    cellUI.setEditable(false);
-                }
-                else {
-                    cellUI.setForeground(TEXT_COLOUR_NORMAL);
-                    cellUI.setEditable(true);
-                }
-            }
+    //Used to read user input when a cell is filled.
+    int getCellValue(int x, int y){
+        try {
+            return Integer.parseInt(cells[x][y].getText());
+        }
+        catch (NumberFormatException e){
+            return 0;
         }
     }
-    */
 
-    public int getCellValue(int x, int y){
-        return Integer.parseInt(cells[x][y].getText());
+    void highlightCell(int x, int y){
+        cells[x][y].setBackground(BACK_COLOUR_HIGHLIGHT);
     }
 
-    void loadPuzzle(){
-        //makeBoard();
+    void unhighlightCell(int x, int y){
+        cells[x][y].setBackground(BACK_COLOUR_NORMAL);
     }
 
+    //why
     private JPanel getBlockFromXY(int x, int y){
         int blockX = x / blockSize;
         int blockY = y / blockSize;
         return blocks[blockX][blockY];
     }
 
-    public void addCellListener(int row, int col, ActionListener cellListener){
-        cells[row][col].addActionListener(cellListener);
+    void addCellListener(int row, int col, FocusListener cellListener){
+        //cells[row][col].addActionListener(cellListener);
+        cells[row][col].addFocusListener(cellListener);
     }
 
 }
