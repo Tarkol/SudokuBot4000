@@ -12,13 +12,13 @@ import java.awt.event.ActionListener;
  * Controller for Sudoku UI, listens for changes in the puzzle grid and passes the information to the model.
  * Created by Tarkol on 06/12/2016.
  */
-public class SudokuUIController{
+class SudokuUIController{
 
     private SudokuUIBoard view;
     private SudokuPuzzle model;
     private SudokuSolver solver;
 
-    public SudokuUIController(SudokuUIBoard sudokuView, SudokuPuzzle sudokuModel){
+    SudokuUIController(SudokuUIBoard sudokuView, SudokuPuzzle sudokuModel){
         this.view = sudokuView;
         this.model = sudokuModel;
 
@@ -32,14 +32,13 @@ public class SudokuUIController{
         }
     }
 
-    //TODO this is terrible probably change the generate function to just sue the current puzzle size
-    public void generatePuzzle(){
+    void generatePuzzle(){
         SudokuGenerator.generatePuzzle(model);
         setBoardFromModel();
         System.out.print(model);
     }
 
-    public void solvePuzzle(){
+    void solvePuzzle(){
         solver.solve();
         setBoardFromModel();
     }
@@ -53,13 +52,12 @@ public class SudokuUIController{
         }
     }
 
-
     private class CellListener implements ActionListener{
 
         private int row;
         private int col;
 
-        public CellListener(int row, int col){
+        CellListener(int row, int col){
             super();
             this.row = row;
             this.col = col;

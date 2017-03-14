@@ -55,7 +55,7 @@ public class SudokuPuzzle {
 
     public int getBlockSize() { return blockSize; }
 
-    public SudokuCell[][] getBoard() { return board; }
+    SudokuCell[][] getBoard() { return board; }
 
     public SudokuCell getCell(int x, int y){
         return board[x][y];
@@ -64,7 +64,7 @@ public class SudokuPuzzle {
     /**
      * Resets the puzzle back to a blank state.
      */
-    public void reset(){
+    void reset(){
         for (int y = 0; y < boardSize; y++) {
             for (int x = 0; x < boardSize; x++) {
                 board[x][y].reset();

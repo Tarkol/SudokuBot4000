@@ -6,10 +6,11 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionListener;
 
-/**
+/** GUI component for displaying a Sudoku puzzle. Scalable for puzzles of (hopefully) any size!
+ * Relies on a UI controller to set cell states.
  * Created by conno on 02/11/2016.
  */
-public class SudokuUIBoard extends JPanel {
+class SudokuUIBoard extends JPanel {
 
     //private SudokuUIModel model;
     private int boardSize;
@@ -27,7 +28,7 @@ public class SudokuUIBoard extends JPanel {
         makeBoard();
     }
 
-    public void makeBoard(){
+    private void makeBoard(){
         GridLayout boardLayout = new GridLayout(blockSize, blockSize, 5, 5);
         this.setLayout(boardLayout);
         this.setBorder(BorderFactory.createEtchedBorder(1));
