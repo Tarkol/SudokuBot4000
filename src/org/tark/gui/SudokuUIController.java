@@ -1,28 +1,58 @@
 package org.tark.gui;
 
+import org.tark.sudoku.SudokuCell;
+import org.tark.sudoku.SudokuGenerator;
+import org.tark.sudoku.SudokuPuzzle;
+import org.tark.sudoku.SudokuSolver;
+
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
 /**
- * Controller for Sudoku UI, listens for changes in text boxes and passes the information to the model.
+ * Controller for Sudoku UI, listens for changes in the puzzle grid and passes the information to the model.
  * Created by Tarkol on 06/12/2016.
  */
 public class SudokuUIController{
 
     private SudokuUIBoard view;
-    private SudokuUIModel model;
+    private SudokuPuzzle model;
+    private SudokuSolver solver;
 
-    public SudokuUIController(SudokuUIBoard sudokuView, SudokuUIModel sudokuModel){
+    public SudokuUIController(SudokuUIBoard sudokuView, SudokuPuzzle sudokuModel){
         this.view = sudokuView;
         this.model = sudokuModel;
 
-        //bad? fixed size
-        for (int y = 0; y <9; y++) {
-            for (int x = 0; x < 9; x++) {
+        generatePuzzle();
+        solver = new SudokuSolver(model);
+
+        for (int y = 0; y < model.getBoardSize(); y++) {
+            for (int x = 0; x < model.getBoardSize(); x++) {
                 this.view.addCellListener(x, y, new CellListener(x, y));
             }
         }
     }
+
+    //TODO this is terrible probably change the generate function to just sue the current puzzle size
+    public void generatePuzzle(){
+        SudokuGenerator.generatePuzzle(model);
+        setBoardFromModel();
+        System.out.print(model);
+    }
+
+    public void solvePuzzle(){
+        solver.solve();
+        setBoardFromModel();
+    }
+
+    private void setBoardFromModel(){
+        for (int y = 0; y < model.getBoardSize(); y++) {
+            for (int x = 0; x < model.getBoardSize(); x++) {
+                SudokuCell currentCell = model.getCell(x, y);
+                view.setCellValue(x, y, currentCell);
+            }
+        }
+    }
+
 
     private class CellListener implements ActionListener{
 
@@ -36,7 +66,8 @@ public class SudokuUIController{
         }
 
         public void actionPerformed(ActionEvent e) {
-            model.setCell(row, col, view.getCellValue(row, col));
+            if (!model.getCell(row, col).isInitial())
+                model.getCell(row, col).setDigit(view.getCellValue(row, col), false);
         }
     }
 }

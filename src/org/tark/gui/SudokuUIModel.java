@@ -9,14 +9,16 @@ import java.awt.event.ActionListener;
 /**
  * Acts as a separator between the UI and the Sudoku classes.
  * Needs a reference to the actual board I think.
+ * pretty sure it isnt needed at atll actually, sthe puzzle class is kind of just this
  * Created by conno on 11/11/2016.
  */
+
 class SudokuUIModel {
 
     private SudokuPuzzle puzzle;
 
     public SudokuUIModel(){
-        puzzle = SudokuPuzzle.generatePuzzle(3); //Using a default value for now;
+       // puzzle = SudokuPuzzle.generatePuzzle(3); //Using a default value for now;
     }
 
     void loadPuzzle(SudokuPuzzle puzzle){
@@ -44,9 +46,10 @@ class SudokuUIModel {
 
     public void generatePuzzle(){}
 
-    public void solvePuzzle(){
-        puzzle.solve(false);
-    }
+   // public void solvePuzzle(){
+
+    //puzzle.solve(false)
+  //  }
 
     public void getHints(){}
 

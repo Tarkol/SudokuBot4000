@@ -1,6 +1,8 @@
 package org.tark;
 
+import org.tark.sudoku.SudokuGenerator;
 import org.tark.sudoku.SudokuPuzzle;
+import org.tark.sudoku.SudokuSolver;
 
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -26,19 +28,24 @@ public class Main {
             }
         }
 
-        /*
-        SudokuPuzzle puzzle = new SudokuPuzzle(board);
 
-        System.out.print(puzzle.getClausesString());
-        puzzle.solve(true);
+        SudokuPuzzle puzzle = new SudokuPuzzle(4);
+        SudokuGenerator.generatePuzzle(puzzle);
+        //SudokuPuzzle puzzle = new SudokuPuzzle(board);
+        SudokuSolver solver = new SudokuSolver(puzzle);
+
+        System.out.print(solver);
+        solver.setVerbosity(true);
+        solver.solve();
 
         System.out.print(puzzle.getBoardString(true));
         System.out.print(puzzle.getBoardString(false));
-        */
 
 
 
 
+
+        /*
         for (int x = 0; x < 1000; x++){
             SudokuPuzzle puzzleGenerated = SudokuPuzzle.generatePuzzle(2);
             puzzleGenerated.solve(false);
@@ -46,6 +53,7 @@ public class Main {
             System.out.print(puzzleGenerated.getBoardString(false));
             System.out.println("------------------------------------------------");
         }
+        */
 
     }
 }

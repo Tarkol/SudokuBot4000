@@ -8,27 +8,25 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
 /**
+ * Main GUI frame for the program. Connects the options menu and the puzzle grid into one window.
  * Created by conno on 02/11/2016.
  */
-//TODO: Actually make a gui.
 public class GUIMain extends JFrame implements ActionListener {
 
-    private SudokuUIBoard sudokuView;
-    private SudokuUIModel sudokuModel;
     private SudokuUIController sudokuController;
-    private Menu menu;
+    private final int DEFAULT_BLOCK_SIZE = 3;
 
-    public GUIMain(){
+    private GUIMain(){
         setTitle("Sudoku Bot 4000");
-        sudokuModel = new SudokuUIModel();
-        sudokuView = new SudokuUIBoard();
+        SudokuPuzzle sudokuModel = new SudokuPuzzle(DEFAULT_BLOCK_SIZE); //Default puzzle size is 3
+        SudokuUIBoard sudokuView = new SudokuUIBoard(DEFAULT_BLOCK_SIZE);
         sudokuController = new SudokuUIController(sudokuView, sudokuModel);
-        menu = new Menu(this);
+        Menu menu = new Menu(this);
         this.setLayout(new FlowLayout());
         Container contents = getContentPane();
         contents.add(sudokuView);
         contents.add(menu);
-        setDefaultCloseOperation(EXIT_ON_CLOSE);
+        setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
         pack();
     }
 
@@ -43,12 +41,10 @@ public class GUIMain extends JFrame implements ActionListener {
 
         switch (s){
             case "new":
-                sudokuModel.loadPuzzle(SudokuPuzzle.generatePuzzle(3));
-                sudokuView.refreshBoard();
+                sudokuController.generatePuzzle();
                 break;
             case "solve":
-                sudokuModel.solvePuzzle();
-                sudokuView.refreshBoard();
+                sudokuController.solvePuzzle();
                 break;
             default: break;
         }

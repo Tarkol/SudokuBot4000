@@ -4,7 +4,6 @@ import org.tark.sudoku.SudokuCell;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
 /**
@@ -18,23 +17,24 @@ public class SudokuUIBoard extends JPanel {
     private JTextField[][] cells;
     private JPanel[][] blocks;
 
-    private final Color COLOUR_INITIAL = Color.LIGHT_GRAY;
-    private final Color COLOUR_NORMAL = Color.BLACK;
+    private final Color TEXT_COLOUR_INITIAL = Color.LIGHT_GRAY;
+    private final Color TEXT_COLOUR_NORMAL = Color.BLACK;
 
-    SudokuUIBoard(){
-        this.model = model;
-        this.boardSize = model.getBoardSize();
-        this.blockSize = model.getBlockSize();
+    SudokuUIBoard(int blockSize)
+    {
+        this.boardSize = blockSize * blockSize;
+        this.blockSize = blockSize;
+        makeBoard();
+    }
+
+    public void makeBoard(){
         GridLayout boardLayout = new GridLayout(blockSize, blockSize, 5, 5);
         this.setLayout(boardLayout);
         this.setBorder(BorderFactory.createEtchedBorder(1));
-        makeBoard();
-        refreshBoard();
-    }
-
-    private void makeBoard(){
         cells = new JTextField[boardSize][boardSize];
         blocks = new JPanel[blockSize][blockSize];
+
+        //Make each individual board cell
         for (int y = 0; y < boardSize; y++) {
             for (int x = 0; x < boardSize; x++) {
                 JTextField cell = new JTextField("0");
@@ -48,6 +48,7 @@ public class SudokuUIBoard extends JPanel {
             }
         }
 
+        //Put the cells into blocks
         for (int y = 0; y < blockSize; y++) {
             for (int x = 0; x < blockSize; x++) {
                 GridLayout blockLayout = new GridLayout(blockSize, blockSize, 0, 0);
@@ -61,6 +62,7 @@ public class SudokuUIBoard extends JPanel {
         }
     }
 
+    //Might be useful for ex row highlighting?
     private JTextField[] getCellsInRow(int y){
         JTextField[] cellsInRow = new JTextField[boardSize];
         for (int x = 0; x < boardSize; x ++)
@@ -79,51 +81,54 @@ public class SudokuUIBoard extends JPanel {
 
     private JTextField[] getCellsInBlock(int blockX, int blockY){
         JTextField[] cellsInBlock = new JTextField[boardSize];
-            for (int x = 0; x < blockSize; x ++)
-                for (int y = 0; y < blockSize; y++)
-                    cellsInBlock[(x * blockSize) + y] = cells[x + (blockX * blockSize)][y + (blockY * blockSize)];
+            for (int y = 0; y < blockSize; y ++)
+                for (int x = 0; x < blockSize; x++)
+                    cellsInBlock[(y * blockSize) + x] = cells[x + (blockX * blockSize)][y + (blockY * blockSize)];
 
         return cellsInBlock;
     }
 
-    public int getCellValue(int x, int y){
-        return Integer.parseInt(cells[x][y].getText());
-    }
 
-    public void setCellValue(int x, int y, int value){
-        SudokuCell cell = model.getCell(x, y);
-        if (cell.setDigit(value, false)){
-            cells[x][y].setText(Integer.toString(cell.getDigit()));
-            //check??
+    public void setCellValue(int x, int y, SudokuCell cell){
+        cells[x][y].setText(cell.toString());
+        if (cell.isInitial()) {
+            cells[x][y].setForeground(TEXT_COLOUR_INITIAL);
+            cells[x][y].setEditable(false);
         }
+        else {
+            cells[x][y].setForeground(TEXT_COLOUR_NORMAL);
+            cells[x][y].setEditable(true);
+        }
+
     }
 
+    /* OLD
     void refreshBoard(){
         for (int y = 0; y < boardSize; y ++) {
             for (int x = 0; x <boardSize; x++) {
-                SudokuCell cell = model.getCell(x, y);
+                //SudokuCell cell = model.getCell(x, y);
                 JTextField cellUI = cells[x][y];
                 int cellValue = cell.getDigit();
                 cellUI.setText(cellValue == 0 ? "" : Integer.toString(cellValue));
                 if (cell.isInitial()) {
-                    cellUI.setForeground(COLOUR_INITIAL);
+                    cellUI.setForeground(TEXT_COLOUR_INITIAL);
                     cellUI.setEditable(false);
                 }
                 else {
-                    cellUI.setForeground(COLOUR_NORMAL);
+                    cellUI.setForeground(TEXT_COLOUR_NORMAL);
                     cellUI.setEditable(true);
                 }
             }
         }
     }
+    */
+
+    public int getCellValue(int x, int y){
+        return Integer.parseInt(cells[x][y].getText());
+    }
 
     void loadPuzzle(){
         //makeBoard();
-        refreshBoard();
-    }
-
-    public void check(){
-
     }
 
     private JPanel getBlockFromXY(int x, int y){
