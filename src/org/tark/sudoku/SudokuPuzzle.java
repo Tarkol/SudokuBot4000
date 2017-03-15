@@ -143,7 +143,6 @@ public class SudokuPuzzle {
         return false;
     }
 
-    //TODO stop duplicates not a big deal?
     public ArrayList<IntPair> getPuzzleConflicts(){
         ArrayList<IntPair> conflicts = new ArrayList<>();
         for (int y = 0; y < boardSize; y++){

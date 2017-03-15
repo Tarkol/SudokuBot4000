@@ -18,7 +18,7 @@ public class SudokuSolver {
 
     private SudokuPuzzle puzzle;
     private final ArrayList<ArrayList<Integer>> clausesBase;
-    private boolean verbose;
+    private boolean verbose = false;
 
     /**
      * A SudokuPuzzle needs to be given as a parameter, this is the puzzle that the solver will act on.
@@ -27,12 +27,11 @@ public class SudokuSolver {
     public SudokuSolver(SudokuPuzzle puzzle){
         this.puzzle = puzzle;
         clausesBase = calcClausesBase();
-        verbose = false;
     }
 
     /**
-     * Controls the console outpur of the solver.
-     * @param verbose True if solver progress should be output to stdout.
+     * Controls the console output of the solver.
+     * @param verbose True if solver progress should be output to console.
      */
     public void setVerbosity (boolean verbose) { this.verbose = verbose; }
 
@@ -112,9 +111,12 @@ public class SudokuSolver {
      * Checks if the puzzle has a single unique solution. That is, each cell has only one correct value.
      * @return True if there is only one unique solution.
      */
-    //TODO: Make this not awful. Use same solver again instead of reinstantiating everything.
     public boolean hasUniqueSolution(){
         ArrayList<ArrayList<Integer>> clausesVariables = calcClausesVariables(true);
+
+        //Maybe don't need to calc this twice.
+        // If puzzle is solved once we already know one solution that won't change.
+        // Why not use the same solution as a negation each time? Will halve number of solver calls.
 
         //First, get the solution for the current puzzle state.
         //If a solution does not exist then there is not a unique solution.

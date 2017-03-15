@@ -5,6 +5,7 @@ import java.util.Collections;
 import java.util.Random;
 
 /**
+ * Cenerates a random puzzle onto a given Sudoku puzzle object.
  * Created by conno on 14/03/2017.
  */
 public class SudokuGenerator {

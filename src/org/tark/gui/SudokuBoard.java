@@ -8,8 +8,8 @@ import java.awt.*;
 import java.awt.event.*;
 import java.util.ArrayList;
 
-/** GUI component for displaying a Sudoku puzzle. Scalable for puzzles of (hopefully) any size!
- * Relies on a UI controller to set cell states.
+/** GUI component for displaying a Sudoku puzzle board. Scalable for puzzles of (hopefully) any size!
+ * Relies on a UI controller to set cell states and handle user actions involving the puzzle data.
  * Created by conno on 02/11/2016.
  */
 class SudokuBoard extends JPanel {
@@ -34,6 +34,11 @@ class SudokuBoard extends JPanel {
         makeBoard();
     }
 
+    /**
+     * Change the block size of the board.
+     * This will clear the current puzzle progress and make a new board of the given size.
+     * @param blockSize The block size of the new puzzle board.
+     */
     void changeBlockSize(int blockSize) {
         clearBoard();
         this.blockSize = blockSize;
@@ -42,6 +47,10 @@ class SudokuBoard extends JPanel {
         revalidate();
     }
 
+    /**
+     * Removes all cells and blocks from the board.
+     * Used when recreating a board, eg for a new board size.
+     */
     private void clearBoard() {
         for (int y = 0; y < boardSize; y++) {
             for (int x = 0; x < boardSize; x++) {
@@ -55,6 +64,9 @@ class SudokuBoard extends JPanel {
         }
     }
 
+    /**
+     * Instantiates all of the cells of the board and sorts them into appropriate blocks.
+     */
     private void makeBoard() {
         GridLayout boardLayout = new GridLayout(blockSize, blockSize, 5, 5);
         this.setLayout(boardLayout);
@@ -69,8 +81,8 @@ class SudokuBoard extends JPanel {
                 cell.setHorizontalAlignment(SwingConstants.CENTER);
                 cell.setBackground(Color.WHITE);
                 cell.setBorder(BorderFactory.createEtchedBorder());
-                cell.setFont(new Font("Sans Serif", Font.PLAIN, 32));
-                cell.setPreferredSize(new Dimension(50, 50));
+                cell.setFont(new Font("Sans Serif", Font.PLAIN, 20));
+                cell.setPreferredSize(new Dimension(30, 30));
                 cell.setDocument(new SudokuCellLimit(boardSize));
                 cell.addKeyListener(new CellKeyAdapter(x, y));
                 cell.addFocusListener(new CellFocusListener(x, y));
@@ -93,7 +105,14 @@ class SudokuBoard extends JPanel {
         }
     }
 
-    //Might be useful for ex row highlighting?
+    //
+
+    /**
+     * Gets all cells in the given row.
+     * Might be useful for ex row highlighting?
+     * @param y The row id to retrieve
+     * @return The text box objects for each cell in the row.
+     */
     private JTextField[] getCellsInRow(int y) {
         JTextField[] cellsInRow = new JTextField[boardSize];
         for (int x = 0; x < boardSize; x++)
@@ -102,6 +121,13 @@ class SudokuBoard extends JPanel {
         return cellsInRow;
     }
 
+    //As above but columns.
+    /**
+     * Gets all cells in the given column.
+     * Might be useful for ex column highlighting?
+     * @param x The column id to retrieve
+     * @return The text box objects for each cell in the column.
+     */
     private JTextField[] getCellsInColumn(int x) {
         JTextField[] cellsInColumn = new JTextField[boardSize];
         for (int y = 0; y < boardSize; y++)
@@ -110,6 +136,12 @@ class SudokuBoard extends JPanel {
         return cellsInColumn;
     }
 
+    /**
+     * Gets all cells in the given block.
+     * @param blockX The X block location to retrieve.
+     * @param blockY The X blocY location to retrieve
+     * @return The text box objects for each cell in the block.
+     */
     private JTextField[] getCellsInBlock(int blockX, int blockY) {
         JTextField[] cellsInBlock = new JTextField[boardSize];
         for (int y = 0; y < blockSize; y++)
@@ -119,7 +151,12 @@ class SudokuBoard extends JPanel {
         return cellsInBlock;
     }
 
-
+    /**
+     * Sets the value of a text box from a Cell object.
+     * @param x X location of the cell.
+     * @param y Y location of the cell.
+     * @param cell The cell to display on the board in the given location.
+     */
     void setCellValue(int x, int y, SudokuCell cell) {
         cells[x][y].setText(cell.toString());
         if (cell.isInitial()) {
@@ -131,7 +168,12 @@ class SudokuBoard extends JPanel {
         }
     }
 
-    //Used to read user input when a cell is filled.
+    /**
+     * Gets the int value of a cell from the board.
+     * @param x X location of the cell.
+     * @param y Y location of the cell.
+     * @return The integer value of the cell.
+     */
     private int getCellValue(int x, int y) {
         try {
             return Integer.parseInt(cells[x][y].getText());
@@ -140,6 +182,11 @@ class SudokuBoard extends JPanel {
         }
     }
 
+    /**
+     * Sets a cell to have a highlight colour. Highlight colour differs based on situation.
+     * @param x X location of the cell to highlight.
+     * @param y Y location of the cell to highlight.
+     */
     private void highlightCell(int x, int y) {
         if (controller.getHintStatus())
             cells[x][y].setBackground(BACK_COLOUR_SELECT);
@@ -147,10 +194,19 @@ class SudokuBoard extends JPanel {
             cells[x][y].setBackground(BACK_COLOUR_HIGHLIGHT);
     }
 
+    /**
+     * Uhighlights a cell, estoring the normal background colour.
+     * @param x X location of the cell to unhighlight.
+     * @param y Y location of the cell to unhighlight.
+     */
     private void unhighlightCell(int x, int y) {
         cells[x][y].setBackground(BACK_COLOUR_NORMAL);
     }
 
+    /**
+     * Shows that no conflicts exist by highlighting all valid cell locations.
+     * //TODO more flexible highlight rules
+     */
     void showNoConflicts(){
         for (int y = 0; y < boardSize; y++){
             for (int x = 0; x < boardSize; x++){
@@ -160,19 +216,27 @@ class SudokuBoard extends JPanel {
         }
     }
 
+    /**
+     * Shows that conflicts exist by highlighting cells with conflicting values.
+     * @param conflicts A list of cell locations that have conflicting values.
+     */
     void showConflicts(ArrayList<IntPair> conflicts){
         for (IntPair cell : conflicts){
             cells[cell.getX()][cell.getY()].setBackground(BACK_COLOUR_CONFLICT);
         }
     }
 
-    //why
+    //Might have use in highlighting blocks, unused right now.
     private JPanel getBlockFromXY(int x, int y) {
         int blockX = x / blockSize;
         int blockY = y / blockSize;
         return blocks[blockX][blockY];
     }
 
+    /**
+     * Sets the controller that manages this view. Control calls from event listeners will be made to this object.
+     * @param controller The Sudoku controller that manages this view.
+     */
     public void setController(SudokuController controller){
         this.controller = controller;
     }
@@ -181,6 +245,9 @@ class SudokuBoard extends JPanel {
         Listeners for interacting with cells on the board.
      */
 
+    /**
+     * Key adapter to request puzzle model update on user input.
+     */
     private class CellKeyAdapter extends KeyAdapter {
 
         private final int x;
@@ -197,7 +264,7 @@ class SudokuBoard extends JPanel {
     }
 
     /**
-     * Small focus listener used to highlight the currently selected cell.
+     * Focus listener used to highlight the currently focused cell.
      */
     private class CellFocusListener implements FocusListener {
 
@@ -223,6 +290,9 @@ class SudokuBoard extends JPanel {
         }
     }
 
+    /**
+     * Mouse listener to set cell focus on mouseover.
+     */
     private class CellMouseAdapter extends MouseAdapter {
 
         private final int x;
