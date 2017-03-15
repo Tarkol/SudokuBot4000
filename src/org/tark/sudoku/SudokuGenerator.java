@@ -33,7 +33,7 @@ public class SudokuGenerator {
             int[] loc = boardLocations.get(0);
             SudokuCell cell = puzzle.getCell(loc[0], loc[1]);
             cell.setDigit(rng.nextInt(puzzle.getBoardSize()) + 1, true);
-            if (!puzzle.cellHasValueConflict(cell, loc[0], loc[1]) && solver.solve(false, true)) {
+            if (!puzzle.checkCellForConflicts(cell, loc[0], loc[1]) && solver.solve(false, true)) {
                 boardLocations.remove(loc);
             }
             else{

@@ -4,11 +4,11 @@ import org.tark.sudoku.SudokuCell;
 import org.tark.sudoku.SudokuGenerator;
 import org.tark.sudoku.SudokuPuzzle;
 import org.tark.sudoku.SudokuSolver;
+import org.tark.util.IntPair;
 
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.FocusEvent;
-import java.awt.event.FocusListener;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
+import java.util.ArrayList;
 
 /**
  * Controller for Sudoku UI, listens for changes in the puzzle grid and passes the information to the model.
@@ -26,14 +26,13 @@ class SudokuUIController{
 
         for (int y = 0; y < model.getBoardSize(); y++) {
             for (int x = 0; x < model.getBoardSize(); x++) {
-                this.view.addCellListener(x, y, new CellListener(x, y));
+                this.view.addCellKeyListener(x, y, new CellListener(x, y));
             }
         }
     }
 
     void changeBoardSize(int blockSize) {
         model = new SudokuPuzzle(blockSize);
-        //view = new SudokuUIBoard(blockSize);
         view.changeBlockSize(blockSize);
     }
 
@@ -45,11 +44,28 @@ class SudokuUIController{
         System.out.print(model);
     }
 
-    void solvePuzzle(){
+    boolean checkSolution(){
+        if (!model.checkPuzzleForConflicts()){
+            if (solver.solve(false, false))
+                view.showNoConflicts();
+            else{
+                //find conflicting cels, get solution and compare differing cells
+            }
+        }
+        else{
+            ArrayList<IntPair> conflicts = model.getPuzzleConflicts();
+            view.showConflicts(conflicts);
+        }
+        return false;
+    }
+
+    void solve(boolean fromInitial){
         solver = new SudokuSolver(model);
-        solver.solve(true, true);
+        solver.solve(true, fromInitial);
         setBoardFromModel();
     }
+
+
 
     private void setBoardFromModel(){
         for (int y = 0; y < model.getBoardSize(); y++) {
@@ -60,7 +76,7 @@ class SudokuUIController{
         }
     }
 
-    private class CellListener implements ActionListener, FocusListener{
+    private class CellListener implements KeyListener {
 
         private int row;
         private int col;
@@ -71,19 +87,16 @@ class SudokuUIController{
             this.col = col;
         }
 
-        public void actionPerformed(ActionEvent e) {
-            if (!model.getCell(row, col).isInitial())
-                model.getCell(row, col).setDigit(view.getCellValue(row, col), false);
+        public void keyPressed(KeyEvent e) {
+
         }
 
-        public void focusGained(FocusEvent e){
-            //mb highlight cell?
-            view.highlightCell(row, col);
+        public void keyReleased(KeyEvent e) {
+            model.getCell(row, col).setDigit(view.getCellValue(row, col), false);
         }
 
-        public void focusLost(FocusEvent e){
-            //also update model here, unhihjlihgt cell/rowbloculm>?
-            view.unhighlightCell(row, col);
+        public void keyTyped(KeyEvent e) {
+
         }
     }
 }

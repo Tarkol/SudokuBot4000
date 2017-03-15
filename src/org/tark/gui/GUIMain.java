@@ -17,7 +17,9 @@ public class GUIMain extends JFrame implements ActionListener {
 
     private enum Actions {
         GENERATE_PUZZLE,
-        SOLVE_PUZZLE
+        SOLVE_PUZZLE,
+        CHECK_SOLUTION,
+        SHOW_SOLUTION
     }
 
     private SudokuUIController sudokuController;
@@ -30,23 +32,37 @@ public class GUIMain extends JFrame implements ActionListener {
         sudokuController = new SudokuUIController(sudokuView, sudokuModel);
 
         Container contents = getContentPane();
-        contents.add(sudokuView);
+        this.add(sudokuView);
+
+        JPanel menuPane = new JPanel(new GridLayout(10, 1));
+        this.add(menuPane);
+
 
         JButton btnNew = new JButton("New Puzzle");
         btnNew.setActionCommand(Actions.GENERATE_PUZZLE.name());
         btnNew.addActionListener(this);
-        this.add(btnNew);
+        menuPane.add(btnNew);
 
         JButton btnSolve = new JButton("Solve Puzzle");
         btnSolve.setActionCommand(Actions.SOLVE_PUZZLE.name());
         btnSolve.addActionListener(this);
-        this.add(btnSolve);
+        menuPane.add(btnSolve);
+
+        JButton btnCheck = new JButton("Check Solution");
+        btnCheck.setActionCommand(Actions.CHECK_SOLUTION.name());
+        btnCheck.addActionListener((this));
+        menuPane.add(btnCheck);
+
+        JButton btnShow = new JButton("Show Solution");
+        btnShow.setActionCommand(Actions.SHOW_SOLUTION.name());
+        btnShow.addActionListener((this));
+        menuPane.add(btnShow);
 
         SpinnerNumberModel modelBlockSizeX = new SpinnerNumberModel(3, 1, 6, 1);
         // SpinnerNumberModel modelBlockSizeY = new SpinnerNumberModel(3, 1, 6, 1);
         JSpinner spinSizeX = new JSpinner(modelBlockSizeX);
         // JSpinner spinSizeY = new JSpinner(modelBlockSizeY);
-        //spinSizeX.addChangeListener(l);
+
         spinSizeX.addChangeListener(new ChangeListener() {
             @Override
             public void stateChanged(ChangeEvent e) {
@@ -56,8 +72,9 @@ public class GUIMain extends JFrame implements ActionListener {
             }
         });
 
-        this.add(spinSizeX);
-        this.add(new JLabel("x"));
+        menuPane.add(new JLabel("Board Size"));
+        menuPane.add(spinSizeX);
+
         //this.add(spinSizeY);
         this.setLayout(new FlowLayout());
 
@@ -74,14 +91,19 @@ public class GUIMain extends JFrame implements ActionListener {
     public void actionPerformed(ActionEvent e){
         String s = e.getActionCommand();
 
-        switch (s){
+        switch (s) {
             case "GENERATE_PUZZLE":
                 sudokuController.generatePuzzle();
                 break;
             case "SOLVE_PUZZLE":
-                sudokuController.solvePuzzle();
+                sudokuController.solve(false);
                 break;
-            default: break;
+            case "CHECK_SOLUTION":
+                sudokuController.checkSolution();
+                break;
+            case "SHOW_SOLUTION":
+                sudokuController.solve(true);
+                break;
         }
     }
 }

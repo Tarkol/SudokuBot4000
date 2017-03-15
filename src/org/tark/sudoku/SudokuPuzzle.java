@@ -1,13 +1,9 @@
 package org.tark.sudoku;
 
-import org.sat4j.core.VecInt;
-import org.sat4j.minisat.SolverFactory;
-import org.sat4j.specs.*;
+import org.tark.util.IntPair;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
-import java.util.Random;
 
 /**
  * Created by Tarkol on 25/10/2016.
@@ -17,6 +13,7 @@ public class SudokuPuzzle {
     private int boardSize;
     private int blockSize;
     private SudokuCell[][] board;
+    private ArrayList<IntPair> conflictingCells;
 
     /**
      * Makes an empty board with a given size for the cell blocks.
@@ -72,13 +69,23 @@ public class SudokuPuzzle {
         }
     }
 
-    public boolean cellHasValueConflict(SudokuCell cell, int cellX, int cellY){
+    public boolean checkPuzzleForConflicts(){
+        for (int y = 0; y < boardSize; y++){
+            for (int x = 0; x < boardSize; x++){
+                if (checkCellForConflicts(getCell(x, y), x, y)){
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
 
+    boolean checkCellForConflicts(SudokuCell cell, int cellX, int cellY){
         //Check cell row
         for (int x = 0; x < boardSize; x++) {
             SudokuCell cellInBoard = board[x][cellY];
             if (cellInBoard.getDigit() > 0 && cellInBoard.getDigit() == cell.getDigit() && cellInBoard != cell) {
-                    return true;
+                return true;
             }
         }
 
@@ -103,8 +110,53 @@ public class SudokuPuzzle {
                 }
             }
         }
-
         return false;
+    }
+
+    //TODO stop duplicates
+    public ArrayList<IntPair> getPuzzleConflicts(){
+        ArrayList<IntPair> conflicts = new ArrayList<>();
+        for (int y = 0; y < boardSize; y++){
+            for (int x = 0; x < boardSize; x++){
+                conflicts.addAll(getCellConflicts(getCell(x, y), x, y));
+            }
+        }
+        return conflicts;
+    }
+
+    private ArrayList<IntPair> getCellConflicts(SudokuCell cell, int cellX, int cellY){
+        ArrayList<IntPair> conflicts = new ArrayList<>();
+
+        //Check cell row
+        for (int x = 0; x < boardSize; x++) {
+            SudokuCell cellInBoard = board[x][cellY];
+            if (cellInBoard.getDigit() > 0 && cellInBoard.getDigit() == cell.getDigit() && cellInBoard != cell) {
+                conflicts.add(new IntPair(x, cellY));
+            }
+        }
+
+        //Check cell column
+        for (int y = 0; y < boardSize; y++) {
+            SudokuCell cellInBoard = board[cellX][y];
+            if (cellInBoard.getDigit() > 0 && cellInBoard.getDigit() == cell.getDigit() && cellInBoard != cell) {
+                conflicts.add(new IntPair(cellX, y));
+            }
+        }
+
+        //Check cell block
+        int blockX = cellX / blockSize;
+        int blockY = cellY / blockSize;
+        for (int x = 0; x < blockSize; x ++){
+            for (int y = 0; y < blockSize; y++) {
+                int trueX = x + (blockX * blockSize);
+                int trueY = y + (blockY * blockSize);
+                SudokuCell cellInBoard = board[trueX][trueY];
+                if (cellInBoard.getDigit() > 0 && cellInBoard.getDigit() == cell.getDigit() && cellInBoard != cell) {
+                    conflicts.add(new IntPair(trueX, trueY));
+                }
+            }
+        }
+        return conflicts;
     }
 
     //region String functions to print the board to command line

@@ -29,7 +29,7 @@ public class Main {
         }
 
 
-        SudokuPuzzle puzzle = new SudokuPuzzle(4);
+        SudokuPuzzle puzzle = new SudokuPuzzle(3);
         SudokuGenerator.generatePuzzle(puzzle);
         //SudokuPuzzle puzzle = new SudokuPuzzle(board);
         SudokuSolver solver = new SudokuSolver(puzzle);
