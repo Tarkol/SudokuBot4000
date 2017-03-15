@@ -27,10 +27,14 @@ public class GUIMenu extends JPanel{
         JButton btnShow = new JButton("Show Solution");
         btnShow.addActionListener(e -> controller.solve(true) );
 
+        JButton btnHint = new JButton("Get hint");
+        btnHint.addActionListener(e -> controller.requestHint());
+
         this.add(btnNew);
         this.add(btnSolve);
         this.add(btnCheck);
         this.add(btnShow);
+        this.add(btnHint);
 
         SpinnerNumberModel modelBlockSizeX = new SpinnerNumberModel(3, 1, 6, 1);
         JSpinner spinSizeX = new JSpinner(modelBlockSizeX);

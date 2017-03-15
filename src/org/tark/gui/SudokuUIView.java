@@ -6,6 +6,8 @@ import javax.swing.*;
 import java.awt.*;
 
 /**
+ * Top level view for the Sudoku UI.
+ * Contains the Sudoku board and an options pane.
  * Created by conno on 15/03/2017.
  */
 public class SudokuUIView {

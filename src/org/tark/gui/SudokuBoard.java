@@ -5,10 +5,7 @@ import org.tark.util.IntPair;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.KeyEvent;
-import java.awt.event.KeyListener;
-import java.awt.event.FocusEvent;
-import java.awt.event.FocusListener;
+import java.awt.event.*;
 import java.util.ArrayList;
 
 /** GUI component for displaying a Sudoku puzzle. Scalable for puzzles of (hopefully) any size!
@@ -27,6 +24,7 @@ class SudokuBoard extends JPanel {
     private final Color TEXT_COLOUR_NORMAL = Color.BLACK;
     private final Color BACK_COLOUR_NORMAL = Color.WHITE;
     private final Color BACK_COLOUR_HIGHLIGHT = Color.ORANGE;
+    private final Color BACK_COLOUR_SELECT = Color.MAGENTA;
     private final Color BACK_COLOUR_GOOD = new Color(170, 255, 150);
     private final Color BACK_COLOUR_CONFLICT = new Color(255, 100, 100);
 
@@ -47,7 +45,7 @@ class SudokuBoard extends JPanel {
     private void clearBoard() {
         for (int y = 0; y < boardSize; y++) {
             for (int x = 0; x < boardSize; x++) {
-                //this.remove(cells[x][y]);
+                this.remove(cells[x][y]);
             }
         }
         for (int y = 0; y < blockSize; y++) {
@@ -74,8 +72,9 @@ class SudokuBoard extends JPanel {
                 cell.setFont(new Font("Sans Serif", Font.PLAIN, 32));
                 cell.setPreferredSize(new Dimension(50, 50));
                 cell.setDocument(new SudokuCellLimit(boardSize));
-                cell.addKeyListener(new CellKeyListener(x, y));
+                cell.addKeyListener(new CellKeyAdapter(x, y));
                 cell.addFocusListener(new CellFocusListener(x, y));
+                cell.addMouseListener(new CellMouseAdapter(x, y));
                 cells[x][y] = cell;
             }
         }
@@ -133,7 +132,7 @@ class SudokuBoard extends JPanel {
     }
 
     //Used to read user input when a cell is filled.
-    int getCellValue(int x, int y) {
+    private int getCellValue(int x, int y) {
         try {
             return Integer.parseInt(cells[x][y].getText());
         } catch (NumberFormatException e) {
@@ -142,7 +141,10 @@ class SudokuBoard extends JPanel {
     }
 
     private void highlightCell(int x, int y) {
-        cells[x][y].setBackground(BACK_COLOUR_HIGHLIGHT);
+        if (controller.getHintStatus())
+            cells[x][y].setBackground(BACK_COLOUR_SELECT);
+        else
+            cells[x][y].setBackground(BACK_COLOUR_HIGHLIGHT);
     }
 
     private void unhighlightCell(int x, int y) {
@@ -171,30 +173,26 @@ class SudokuBoard extends JPanel {
         return blocks[blockX][blockY];
     }
 
-    void addCellKeyListener(int row, int col, KeyListener cellListener) {
-        cells[row][col].addKeyListener(cellListener);
+    public void setController(SudokuController controller){
+        this.controller = controller;
     }
 
-    private class CellKeyListener implements KeyListener {
+    /*
+        Listeners for interacting with cells on the board.
+     */
 
-        private int x;
-        private int y;
+    private class CellKeyAdapter extends KeyAdapter {
 
-        CellKeyListener(int x, int y){
+        private final int x;
+        private final int y;
+
+        CellKeyAdapter(int x, int y){
             this.x = x;
             this.y = y;
         }
 
-        public void keyPressed(KeyEvent e) {
-
-        }
-
         public void keyReleased(KeyEvent e) {
-            controller.setCell(getCellValue(x, y), x, y);
-        }
-
-        public void keyTyped(KeyEvent e) {
-
+            controller.setCell(getCellValue(x, y),x,y);
         }
     }
 
@@ -225,7 +223,26 @@ class SudokuBoard extends JPanel {
         }
     }
 
-    public void setController(SudokuController controller){
-        this.controller = controller;
+    private class CellMouseAdapter extends MouseAdapter {
+
+        private final int x;
+        private final int y;
+
+        CellMouseAdapter(int x, int y){
+            this.x = x;
+            this.y = y;
+        }
+
+        @Override
+        public void mouseEntered(MouseEvent e) {
+            cells[x][y].requestFocus();
+        }
+
+        @Override
+        public void mouseClicked(MouseEvent e){
+            if (controller.getHintStatus()){
+                controller.getHintForCell(x, y);
+            }
+        }
     }
 }

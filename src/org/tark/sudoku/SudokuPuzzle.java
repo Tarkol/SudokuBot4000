@@ -41,10 +41,36 @@ public class SudokuPuzzle {
         this.blockSize = (int)Math.sqrt(board.length);
         this.boardSize = board.length;
         this.board = new SudokuCell[boardSize][boardSize];
-        for (int y = 0; y < boardSize; y++){
-            for (int x = 0; x < boardSize; x++){
-                this.board[x][y] = new SudokuCell(board[x][y], board[x][y] != 0);
+        try {
+            for (int y = 0; y < boardSize; y++) {
+                for (int x = 0; x < boardSize; x++) {
+                    this.board[x][y] = new SudokuCell(board[x][y], board[x][y] != 0);
+                }
             }
+        }
+        catch (Exception e){
+            System.err.println("The board input was not recognised." + e.getMessage());
+        }
+    }
+
+    /**
+     * Creates a Sudoku puzzle from an existing grid of SudokuCells
+     * @param cellBoard The grid of SudokuCells to convert into a full puzzle.
+     */
+    public SudokuPuzzle(SudokuCell[][] cellBoard) {
+        this.blockSize = (int)Math.sqrt(cellBoard.length);
+        this.boardSize = cellBoard.length;
+        this.board = new SudokuCell[boardSize][boardSize];
+        try {
+            for (int y = 0; y < boardSize; y++) {
+                for (int x = 0; x < boardSize; x++) {
+                    SudokuCell currCell = cellBoard[x][y];
+                    this.board[x][y] = new SudokuCell(currCell.getDigit(), currCell.isInitial());
+                }
+            }
+        }
+        catch (Exception e){
+            System.err.println("The board input was not recognised." + e.getMessage());
         }
     }
 
@@ -117,7 +143,7 @@ public class SudokuPuzzle {
         return false;
     }
 
-    //TODO stop duplicates
+    //TODO stop duplicates not a big deal?
     public ArrayList<IntPair> getPuzzleConflicts(){
         ArrayList<IntPair> conflicts = new ArrayList<>();
         for (int y = 0; y < boardSize; y++){
@@ -204,4 +230,8 @@ public class SudokuPuzzle {
         return s;
     }
     //endregion
+
+    public SudokuPuzzle copy(){
+        return new SudokuPuzzle(board);
+    }
 }

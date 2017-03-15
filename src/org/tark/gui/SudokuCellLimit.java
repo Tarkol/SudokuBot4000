@@ -5,7 +5,8 @@ import javax.swing.text.BadLocationException;
 import javax.swing.text.PlainDocument;
 
 /**
- * Controls what values can be entered into Sudoku Cell text boxes, only integers less than or equal to the limit are allowed.
+ * Controls what values can be entered into Sudoku Cell text boxes, only integers less than or equal to the limit
+ * are allowed, where the limit should be the highest number allowed in the puzzle.
  * Created by Tarkol on 06/12/2016.
  */
 class SudokuCellLimit extends PlainDocument {
@@ -28,8 +29,7 @@ class SudokuCellLimit extends PlainDocument {
             }
         }
         catch (Exception e) {
-            return;
-            //todo deal w/ exception
+            System.err.println("Attempted to write to an invalid location" + e.getMessage());
         }
     }
 }

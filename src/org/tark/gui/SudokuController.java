@@ -17,10 +17,12 @@ class SudokuController {
     private SudokuBoard board;
     private SudokuPuzzle model;
     private SudokuSolver solver;
+    private boolean waitingForHint;
 
     public SudokuController(SudokuUIView sudokuView, SudokuPuzzle sudokuModel){
         this.board = sudokuView.getBoard();
         this.model = sudokuModel;
+        waitingForHint = false;
     }
 
     void changeBlockSize(int blockSize) {
@@ -33,7 +35,7 @@ class SudokuController {
         solver = new SudokuSolver(model);
 
         setBoardFromModel();
-        System.out.print(model);
+        waitingForHint = false;
     }
 
     void checkSolution(){
@@ -48,6 +50,23 @@ class SudokuController {
             ArrayList<IntPair> conflicts = model.getPuzzleConflicts();
             board.showConflicts(conflicts);
         }
+    }
+
+    void requestHint(){
+        waitingForHint = true;
+    }
+
+    boolean getHintStatus(){
+        return waitingForHint;
+    }
+
+    void getHintForCell(int x, int y){
+        SudokuPuzzle solution = model.copy();
+        SudokuSolver solutionSolver = new SudokuSolver(solution);
+        solutionSolver.solve(true, true);
+        model.setCell(x, y, solution.getCell(x, y).getDigit());
+        setBoardFromModel();
+        waitingForHint = false;
     }
 
     void solve(boolean fromInitial){
