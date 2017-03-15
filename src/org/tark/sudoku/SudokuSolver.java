@@ -2,7 +2,6 @@ package org.tark.sudoku;
 
 import org.sat4j.core.VecInt;
 import org.sat4j.minisat.SolverFactory;
-import org.sat4j.minisat.core.IntQueue;
 import org.sat4j.specs.ContradictionException;
 import org.sat4j.specs.IProblem;
 import org.sat4j.specs.ISolver;
@@ -11,32 +10,42 @@ import org.sat4j.specs.TimeoutException;
 import java.util.ArrayList;
 
 /**
+ * Contains methods to solve a sudoku puzzle using a SAT solver.
+ * Has methods to solve, check puzzle validity and generate DIMACs strings.
  * Created by conno on 14/03/2017.
  */
 public class SudokuSolver {
 
     private SudokuPuzzle puzzle;
     private final ArrayList<ArrayList<Integer>> clausesBase;
-    //private ArrayList<ArrayList<Integer>> clausesVariables;
     private boolean verbose;
 
+    /**
+     * A SudokuPuzzle needs to be given as a parameter, this is the puzzle that the solver will act on.
+     * @param puzzle The puzzle to be solved.
+     */
     public SudokuSolver(SudokuPuzzle puzzle){
         this.puzzle = puzzle;
         clausesBase = calcClausesBase();
         verbose = false;
     }
 
+    /**
+     * Controls the console outpur of the solver.
+     * @param verbose True if solver progress should be output to stdout.
+     */
     public void setVerbosity (boolean verbose) { this.verbose = verbose; }
 
     /**
-     * Attempts to solve the puzzle from its current state.
-     *  //TODO remove this
+     * Attempts to solve the puzzle. Can solve from the current or initial puzzle state.
+     * @param saveSolution True if the solution should be saved onto the puzzle.
+     * @param fromInitial True if the solver ignores current puzzle progress and uses the initial puzzle values.
      * @return True if the puzzle has been solved successfully.
      */
     public boolean solve(boolean saveSolution, boolean fromInitial){
         ArrayList<ArrayList<Integer>> clausesVariables = calcClausesVariables(fromInitial);
         int[] solution = getSolution(clausesVariables);
-        if (solution != null && solution.length > 0) {
+        if (solution.length > 0) {
             if (saveSolution) { setCellsFromDIMACS(solution); }
             return true;
         }
@@ -44,11 +53,11 @@ public class SudokuSolver {
     }
 
     /**
-     * Gets the DIMACs output for the solved puzzle.
+     * Gets the DIMACs output showing the solution for for the current puzzle.
+     * Uses the currently calculated base clauses combined with the clause input.
+     * @param clausesVariables DIMACs clauses describing the current state of variables in the puzzle.
      * @return An array with all the DIMACs variables to form the solution.
-     * [NOTE] deal with exceptions in a better way than nulls
      */
-    //TODO: Maybe actually do exception handling. Maybe doesn't have to be its own method?
     private int[] getSolution(ArrayList<ArrayList<Integer>> clausesVariables){
         long startTime = System.currentTimeMillis();
         long parseTime;
@@ -88,13 +97,14 @@ public class SudokuSolver {
             }
             return solution;
         }
+        //If an error occurs, report it and return an empty solution.
         catch (ContradictionException e){
-            System.out.println("CNF Contradiction! " + e.getMessage());
-            return null;
+            System.out.println("The CNF input contained contradictions. " + e.getMessage());
+            return new int[]{};
         }
         catch (TimeoutException e){
             System.out.println("The problem has timed out. " + e);
-            return null;
+            return new int[]{};
         }
     }
 
@@ -109,7 +119,7 @@ public class SudokuSolver {
         //First, get the solution for the current puzzle state.
         //If a solution does not exist then there is not a unique solution.
         int[] solution = getSolution(clausesVariables);
-        if (solution == null || solution.length == 0) { return false; }
+        if (solution.length == 0) { return false; }
 
         //Add a negation clause using the solution.
         //This means that the solver cannot use the same combination of cell values to solve the puzzle.
@@ -121,8 +131,7 @@ public class SudokuSolver {
         //Try to find another solution using this additional constraint.
         //If no other solution is found then the puzzle solution is unique.
         solution = getSolution(clausesVariables);
-        if (solution == null || solution.length == 0) { return true; }
-        else { return false; }
+        return (solution.length == 0);
     }
 
     @Override
@@ -145,6 +154,13 @@ public class SudokuSolver {
         return header + clauseString;
     }
 
+    /**
+     * Calculates the clauses required to solve an empty puzzle.
+     * Because this is always the same for a puzzle of a given size, it is calculated only once, separately
+     * from the clauses describing the state of the puzzle.
+     * @return A huge list of DIMACS clauses describing how to solve an empty Sudoku with the same size as the puzzle
+     * attached to the solver..
+     */
     private ArrayList<ArrayList<Integer>> calcClausesBase(){
         int boardSize = puzzle.getBoardSize();
         int blockSize = puzzle.getBlockSize();
@@ -236,6 +252,11 @@ public class SudokuSolver {
         return baseClauses;
     }
 
+    /**
+     * Calculates the DIMACs clauses that describe the current state of the Sudoku board.
+     * @param onlyInitial True if only the initial state of the puzzle should be solved.
+     * @return A list of DIMACs clauses describing the current state of the puzzle.
+     */
     private ArrayList<ArrayList<Integer>> calcClausesVariables(boolean onlyInitial){
         int boardSize = puzzle.getBoardSize();
         int rowLength = boardSize * boardSize;
@@ -260,6 +281,10 @@ public class SudokuSolver {
         return variableClauses;
     }
 
+    /**
+     * Updates the attached Sudoku puzzle using DIMACs output from the solver.
+     * @param vars An array of DIMACs variables describing the solved state of the puzzle.
+     */
     private void setCellsFromDIMACS(int[] vars) {
         int boardSize = puzzle.getBoardSize();
         int rowLength = boardSize * boardSize;

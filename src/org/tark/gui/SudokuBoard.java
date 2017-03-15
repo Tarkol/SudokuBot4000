@@ -15,8 +15,9 @@ import java.util.ArrayList;
  * Relies on a UI controller to set cell states.
  * Created by conno on 02/11/2016.
  */
-class SudokuUIBoard extends JPanel {
+class SudokuBoard extends JPanel {
 
+    private SudokuController controller;
     private int boardSize;
     private int blockSize;
     private JTextField[][] cells;
@@ -29,7 +30,7 @@ class SudokuUIBoard extends JPanel {
     private final Color BACK_COLOUR_GOOD = new Color(170, 255, 150);
     private final Color BACK_COLOUR_CONFLICT = new Color(255, 100, 100);
 
-    SudokuUIBoard(int blockSize) {
+    SudokuBoard(int blockSize) {
         this.boardSize = blockSize * blockSize;
         this.blockSize = blockSize;
         makeBoard();
@@ -73,6 +74,7 @@ class SudokuUIBoard extends JPanel {
                 cell.setFont(new Font("Sans Serif", Font.PLAIN, 32));
                 cell.setPreferredSize(new Dimension(50, 50));
                 cell.setDocument(new SudokuCellLimit(boardSize));
+                cell.addKeyListener(new CellKeyListener(x, y));
                 cell.addFocusListener(new CellFocusListener(x, y));
                 cells[x][y] = cell;
             }
@@ -173,6 +175,29 @@ class SudokuUIBoard extends JPanel {
         cells[row][col].addKeyListener(cellListener);
     }
 
+    private class CellKeyListener implements KeyListener {
+
+        private int x;
+        private int y;
+
+        CellKeyListener(int x, int y){
+            this.x = x;
+            this.y = y;
+        }
+
+        public void keyPressed(KeyEvent e) {
+
+        }
+
+        public void keyReleased(KeyEvent e) {
+            controller.setCell(getCellValue(x, y), x, y);
+        }
+
+        public void keyTyped(KeyEvent e) {
+
+        }
+    }
+
     /**
      * Small focus listener used to highlight the currently selected cell.
      */
@@ -198,5 +223,9 @@ class SudokuUIBoard extends JPanel {
         public void focusLost(FocusEvent e) {
             unhighlightCell(x, y);
         }
+    }
+
+    public void setController(SudokuController controller){
+        this.controller = controller;
     }
 }

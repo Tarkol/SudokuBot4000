@@ -58,6 +58,10 @@ public class SudokuPuzzle {
         return board[x][y];
     }
 
+    public void setCell(int x, int y, int value){
+        board[x][y].setDigit(value, false);
+    }
+
     /**
      * Resets the puzzle back to a blank state.
      */
