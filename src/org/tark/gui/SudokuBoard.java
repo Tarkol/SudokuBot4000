@@ -28,7 +28,7 @@ class SudokuBoard extends JPanel {
     private final Color BACK_COLOUR_GOOD = new Color(170, 255, 150);
     private final Color BACK_COLOUR_CONFLICT = new Color(255, 100, 100);
 
-    SudokuBoard(int blockSize) {
+    public SudokuBoard(int blockSize) {
         this.boardSize = blockSize * blockSize;
         this.blockSize = blockSize;
         makeBoard();
@@ -39,7 +39,7 @@ class SudokuBoard extends JPanel {
      * This will clear the current puzzle progress and make a new board of the given size.
      * @param blockSize The block size of the new puzzle board.
      */
-    void changeBlockSize(int blockSize) {
+    public void changeBlockSize(int blockSize) {
         clearBoard();
         this.blockSize = blockSize;
         boardSize = blockSize * blockSize;
@@ -157,7 +157,7 @@ class SudokuBoard extends JPanel {
      * @param y Y location of the cell.
      * @param cell The cell to display on the board in the given location.
      */
-    void setCellValue(int x, int y, SudokuCell cell) {
+    public void setCellValue(int x, int y, SudokuCell cell) {
         cells[x][y].setText(cell.toString());
         if (cell.isInitial()) {
             cells[x][y].setForeground(TEXT_COLOUR_INITIAL);
@@ -207,7 +207,7 @@ class SudokuBoard extends JPanel {
      * Shows that no conflicts exist by highlighting all valid cell locations.
      * //TODO more flexible highlight rules
      */
-    void showNoConflicts(){
+    public void showNoConflicts(){
         for (int y = 0; y < boardSize; y++){
             for (int x = 0; x < boardSize; x++){
                 if (!cells[x][y].getText().equals(""))
@@ -220,7 +220,7 @@ class SudokuBoard extends JPanel {
      * Shows that conflicts exist by highlighting cells with conflicting values.
      * @param conflicts A list of cell locations that have conflicting values.
      */
-    void showConflicts(ArrayList<IntPair> conflicts){
+    public void showConflicts(ArrayList<IntPair> conflicts){
         for (IntPair cell : conflicts){
             cells[cell.getX()][cell.getY()].setBackground(BACK_COLOUR_CONFLICT);
         }

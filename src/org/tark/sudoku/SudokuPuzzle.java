@@ -78,7 +78,7 @@ public class SudokuPuzzle {
 
     public int getBlockSize() { return blockSize; }
 
-    SudokuCell[][] getBoard() { return board; }
+    public SudokuCell[][] getBoard() { return board; }
 
     public SudokuCell getCell(int x, int y){
         return board[x][y];
@@ -91,7 +91,7 @@ public class SudokuPuzzle {
     /**
      * Resets the puzzle back to a blank state.
      */
-    void reset(){
+    public void reset(){
         for (int y = 0; y < boardSize; y++) {
             for (int x = 0; x < boardSize; x++) {
                 board[x][y].reset();
@@ -110,7 +110,7 @@ public class SudokuPuzzle {
         return false;
     }
 
-    boolean checkCellForConflicts(SudokuCell cell, int cellX, int cellY){
+    public boolean checkCellForConflicts(SudokuCell cell, int cellX, int cellY){
         //Check cell row
         for (int x = 0; x < boardSize; x++) {
             SudokuCell cellInBoard = board[x][cellY];

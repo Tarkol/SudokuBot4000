@@ -29,17 +29,22 @@ public class Main {
         }
 
 
-        SudokuPuzzle puzzle = new SudokuPuzzle(3);
-        SudokuGenerator.generatePuzzle(puzzle);
-        //SudokuPuzzle puzzle = new SudokuPuzzle(board);
+        SudokuPuzzle puzzle = new SudokuPuzzle(4);
+
         SudokuSolver solver = new SudokuSolver(puzzle);
+        //SudokuGenerator.generatePuzzle(puzzle, solver);
+        //SudokuPuzzle puzzle = new SudokuPuzzle(board);
 
         //System.out.print(solver);
         //solver.setVerbosity(true);
+        solver.useMinimalSet(false);
         solver.solve(true, true);
 
         System.out.print(puzzle.getBoardString(true));
         System.out.print(puzzle.getBoardString(false));
+
+        System.out.println(solver.getGenerateTime());
+        System.out.println(solver.getSolveTime());
 
 
 

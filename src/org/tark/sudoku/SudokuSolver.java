@@ -19,6 +19,9 @@ public class SudokuSolver {
     private SudokuPuzzle puzzle;
     private final ArrayList<ArrayList<Integer>> clausesBase;
     private boolean verbose = false;
+    private boolean useMinimalSet = false;
+    private long lastSolveTime;
+    private long generateTime;
 
     /**
      * A SudokuPuzzle needs to be given as a parameter, this is the puzzle that the solver will act on.
@@ -34,6 +37,16 @@ public class SudokuSolver {
      * @param verbose True if solver progress should be output to console.
      */
     public void setVerbosity (boolean verbose) { this.verbose = verbose; }
+
+    public void useMinimalSet(boolean minimalSet){
+        this.useMinimalSet = minimalSet;
+    }
+
+    public long getSolveTime(){ return lastSolveTime; }
+
+    public long getGenerateTime() { return generateTime; }
+
+    public void setGenerateTime(long generateTime) { this.generateTime = generateTime; }
 
     /**
      * Attempts to solve the puzzle. Can solve from the current or initial puzzle state.
@@ -54,13 +67,11 @@ public class SudokuSolver {
     /**
      * Gets the DIMACs output showing the solution for for the current puzzle.
      * Uses the currently calculated base clauses combined with the clause input.
-     * @param clausesVariables DIMACs clauses describing the current state of variables in the puzzle.
-     * @return An array with all the DIMACs variables to form the solution.
+     * @param clausesVariables DIMACS clauses describing the current state of variables in the puzzle.
+     * @return An array with all the DIMACS variables to form the solution.
      */
     private int[] getSolution(ArrayList<ArrayList<Integer>> clausesVariables){
         long startTime = System.currentTimeMillis();
-        long parseTime;
-        long SATTime;
         int[] solution = {};
         try {
             ISolver solver = SolverFactory.newDefault();
@@ -74,20 +85,17 @@ public class SudokuSolver {
                 int[] clauseArray = clause.stream().mapToInt(i -> i).toArray();
                 solver.addClause(new VecInt(clauseArray));
             }
-            parseTime = System.currentTimeMillis() - startTime;
-            startTime = System.currentTimeMillis();
 
             IProblem problem = solver;
             if (problem.isSatisfiable()) {
-                SATTime = System.currentTimeMillis() - startTime;
+                lastSolveTime = System.currentTimeMillis() - startTime;
                 solution = problem.model();
                 if (verbose){
                     System.out.println("Satisfiable!");
                     System.out.printf("Statistics:!\n");
-                    System.out.printf("Parse time: %dms\n", parseTime);
-                    System.out.printf("SAT time: %dms\n", SATTime);
                     System.out.printf("Number of variables: %d\n", solver.nVars());
                     System.out.printf("Number of constraints: %d\n", solver.nConstraints());
+                    System.out.printf("Solve time: %d", lastSolveTime);
                     System.out.println(solver.getStat());
                 }
             }
@@ -161,7 +169,7 @@ public class SudokuSolver {
      * Because this is always the same for a puzzle of a given size, it is calculated only once, separately
      * from the clauses describing the state of the puzzle.
      * @return A huge list of DIMACS clauses describing how to solve an empty Sudoku with the same size as the puzzle
-     * attached to the solver..
+     * attached to the solver.
      */
     private ArrayList<ArrayList<Integer>> calcClausesBase(){
         int boardSize = puzzle.getBoardSize();
@@ -195,9 +203,11 @@ public class SudokuSolver {
             for (int i = 1; i <= boardSize; i++){
                 clause = new ArrayList<>();
                 for (int y = 0; y < boardSize; y ++){
-                    clause.add((x * boardSize) + (y * rowLength) + i);
+                    //Define
+                    if (!useMinimalSet) clause.add((x * boardSize) + (y * rowLength) + i);
                     for (int y2 = 0; y2 < boardSize; y2++){
                         if (y != y2 && y2 > y){
+                            //Unique
                             subclause = new ArrayList<>();
                             subclause.add(-1 * ((x * boardSize) + (y * rowLength)  + i));
                             subclause.add(-1 * ((x * boardSize) + (y2 * rowLength) + i));
@@ -214,9 +224,11 @@ public class SudokuSolver {
             for (int i = 1; i <= boardSize; i++){
                 clause = new ArrayList<>();
                 for (int x = 0; x < boardSize; x ++){
-                    clause.add((x * boardSize) + (y * rowLength) + i);
+                    //Define
+                    if (!useMinimalSet) clause.add((x * boardSize) + (y * rowLength) + i);
                     for (int x2 = 0; x2 < boardSize; x2++){
                         if (x != x2 && x2 > x){
+                            //Unique
                             subclause = new ArrayList<>();
                             subclause.add(-1 * ((x  * boardSize) + (y * rowLength) + i));
                             subclause.add(-1 * ((x2 * boardSize) + (y * rowLength) + i));
@@ -236,9 +248,11 @@ public class SudokuSolver {
                     clause = new ArrayList<>();
                     for (int x = 0; x < blockSize; x ++){
                         for (int y = 0; y < blockSize; y++) {
-                            clause.add(((x + (blockX * blockSize)) * boardSize) + ((y + (blockY * blockSize)) * rowLength) + i);
+                            //Define
+                            if (!useMinimalSet) clause.add(((x + (blockX * blockSize)) * boardSize) + ((y + (blockY * blockSize)) * rowLength) + i);
                             for (int y2 = 0; y2 < blockSize; y2++) {
                                 if (y != y2 && y2 > y){
+                                    //Unique
                                     subclause = new ArrayList<>();
                                     subclause.add(-1 * (((x + (blockX * blockSize)) * boardSize) + ((y   + (blockY * blockSize)) * rowLength) + i));
                                     subclause.add(-1 * (((x + (blockX * blockSize)) * boardSize) + ((y2  + (blockY * blockSize)) * rowLength) + i));

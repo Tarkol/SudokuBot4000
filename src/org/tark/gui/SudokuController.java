@@ -20,19 +20,20 @@ class SudokuController {
     private boolean waitingForHint;
 
     public SudokuController(SudokuUIView sudokuView, SudokuPuzzle sudokuModel){
-        this.board = sudokuView.getBoard(); //shouldnt need this
+        this.board = sudokuView.getBoard();
         this.model = sudokuModel;
         waitingForHint = false;
     }
 
     void changeBlockSize(int blockSize) {
         model = new SudokuPuzzle(blockSize);
-        board.changeBlockSize(blockSize); //same dont want
+        board.changeBlockSize(blockSize);
     }
 
     void generatePuzzle(){
-        SudokuGenerator.generatePuzzle(model);
+
         solver = new SudokuSolver(model);
+        SudokuGenerator.generatePuzzle(model, solver);
 
         setBoardFromModel();
         waitingForHint = false;
@@ -41,14 +42,14 @@ class SudokuController {
     void checkSolution(){
         if (!model.checkPuzzleForConflicts()){
             if (solver.solve(false, false))
-                board.showNoConflicts(); //delet this
+                board.showNoConflicts();
             else{
-                //find conflicting cels, get solution and compare differing cells
+                //find conflicting cells, get solution and compare differing cells
             }
         }
         else{
             ArrayList<IntPair> conflicts = model.getPuzzleConflicts();
-            board.showConflicts(conflicts); //need listen for bord
+            board.showConflicts(conflicts);
         }
     }
 
@@ -73,6 +74,12 @@ class SudokuController {
         solver = new SudokuSolver(model);
         solver.solve(true, fromInitial);
         setBoardFromModel();
+    }
+
+    void printClauses(){
+        if (solver != null){
+            System.out.print(solver);
+        }
     }
 
     //Shouldn't be needed, a listener on the board that reacts to model changes would be preferable.

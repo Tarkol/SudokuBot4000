@@ -13,7 +13,7 @@ public class GUIMenu extends JPanel{
 
     private SudokuController controller;
 
-    GUIMenu(SudokuUIView parent){
+    public GUIMenu(SudokuUIView parent){
         this.setLayout(new GridLayout(10, 1));
         JButton btnNew = new JButton("New Puzzle");         //Generate a new puzzle for the current board size.
         btnNew.addActionListener(e -> controller.generatePuzzle());
@@ -30,11 +30,15 @@ public class GUIMenu extends JPanel{
         JButton btnHint = new JButton("Get hint");          //Readies the controller to reveal a hint for the board.
         btnHint.addActionListener(e -> controller.requestHint());
 
+        JButton btnPrint = new JButton("Print Clauses");     //Prints the caluses that represent the puzzle.
+        btnPrint.addActionListener(e -> controller.printClauses());
+
         this.add(btnNew);
         this.add(btnSolve);
         this.add(btnCheck);
         this.add(btnShow);
         this.add(btnHint);
+        this.add(btnPrint);
 
         SpinnerNumberModel modelBlockSizeX = new SpinnerNumberModel(3, 1, 6, 1);
         JSpinner spinSizeX = new JSpinner(modelBlockSizeX);

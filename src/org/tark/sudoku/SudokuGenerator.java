@@ -13,16 +13,16 @@ public class SudokuGenerator {
     /**
      * Generates a sudoku puzzle with a unique solution.
      * @param puzzle The board to generate a new puzzle on.
-     * @return Nothing, but the puzzle input will be updated.
      */
     //TODO: Reuse the same solver instead of making a new one for every number.
-    public static void generatePuzzle(SudokuPuzzle puzzle){
+    public static void generatePuzzle(SudokuPuzzle puzzle, SudokuSolver solver){
         //To generate a puzzle we will start by generating a filled board state,
         //then remove numbers from the board to create the initial puzzle.
 
+        long generateTime = System.currentTimeMillis();
+
         //First reset the input puzzle.
         puzzle.reset();
-        SudokuSolver solver = new SudokuSolver(puzzle);
 
         //Then we get all the cells and randomize the order we iterate through them.
         ArrayList<int[]> boardLocations = makeCoordinateList(puzzle.getBoardSize());
@@ -54,6 +54,9 @@ public class SudokuGenerator {
             cell.reset();
             if (!solver.hasUniqueSolution()) { cell.setDigit(lastCellValue, true); }
         }
+
+        generateTime = System.currentTimeMillis() - generateTime;
+        solver.setGenerateTime(generateTime);
     }
 
     private static ArrayList<int[]> makeCoordinateList(int boardSize){
